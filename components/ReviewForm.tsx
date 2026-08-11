@@ -6,12 +6,11 @@ import { submitReview } from '@/app/academia/[slug]/actions';
 
 // Porta o formulário de avaliação por categoria (REVIEW_CATEGORIES,
 // pickStar / submitReview) do protótipo -- star-picker de 1 a 5 por
-// categoria + nome + "é aluno(a)?" + contato + comentário.
+// categoria + "é aluno(a)?" + comentário. O nome vem da conta logada
+// (ReviewGate) e não pede mais contato: o login já é a verificação.
 export default function ReviewForm({ gymId, gymSlug }: { gymId: string; gymSlug: string }) {
   const [stars, setStars] = useState<Record<string, number>>({});
   const [alunoAtual, setAlunoAtual] = useState('SIM');
-  const [contactType, setContactType] = useState('whatsapp');
-  const [contactValue, setContactValue] = useState('');
   const [comentario, setComentario] = useState('');
   const [pending, startTransition] = useTransition();
   const [sent, setSent] = useState(false);
@@ -36,10 +35,6 @@ export default function ReviewForm({ gymId, gymSlug }: { gymId: string; gymSlug:
     const formData = new FormData();
     formData.set('comentario', comentario);
     formData.set('alunoAtual', alunoAtual);
-    if (contactValue.trim()) {
-      formData.set('contatoTipo', contactType);
-      formData.set('contatoValor', contactValue);
-    }
     formData.set('notas', JSON.stringify(stars));
 
     startTransition(async () => {
@@ -106,21 +101,6 @@ export default function ReviewForm({ gymId, gymSlug }: { gymId: string; gymSlug:
         <option value="JA_FUI">Já fui aluno(a), mas não sou mais</option>
         <option value="NAO">Não, apenas visitei/conheço</option>
       </select>
-      <label style={{ fontSize: 12.5, color: 'var(--ink-soft)', fontWeight: 600, display: 'block', marginTop: 10 }}>
-        WhatsApp para contato (opcional)
-      </label>
-      <div className="field-row">
-        <select value={contactType} onChange={(e) => setContactType(e.target.value)}>
-          <option value="whatsapp">WhatsApp</option>
-          <option value="email">E-mail</option>
-        </select>
-        <input
-          type="text"
-          placeholder="Opcional"
-          value={contactValue}
-          onChange={(e) => setContactValue(e.target.value)}
-        />
-      </div>
       <textarea
         rows={2}
         placeholder="Conte como foi sua experiência..."

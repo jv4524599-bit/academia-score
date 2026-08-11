@@ -19,8 +19,6 @@ export async function submitReview(gymId: string, gymSlug: string, formData: For
   const autor = displayName(user.name);
   const comentario = String(formData.get('comentario') || '').trim();
   const alunoAtualRaw = String(formData.get('alunoAtual') || '');
-  const contatoTipo = String(formData.get('contatoTipo') || 'whatsapp');
-  const contatoValor = String(formData.get('contatoValor') || '').trim();
   const notasRaw = String(formData.get('notas') || '{}');
 
   let notas: Record<string, number> = {};
@@ -39,10 +37,8 @@ export async function submitReview(gymId: string, gymSlug: string, formData: For
 
   const alunoAtual = ['SIM', 'JA_FUI', 'NAO'].includes(alunoAtualRaw) ? alunoAtualRaw : undefined;
 
-  const gym = await db.gym.findUnique({ where: { id: gymId } });
-
-  // Uma avaliação por usuário por academia -- evita duplicidade agora que
-  // temos conta de verdade (antes dependia só do contato informado).
+  // Uma avaliação por usuário por academia -- a conta autenticada já é
+  // suficiente pra evitar duplicidade, sem precisar de contato extra.
   const already = await db.review.findFirst({ where: { gymId, userId: user.id } });
   if (already) {
     throw new Error('Você já avaliou esta academia.');
@@ -57,24 +53,8 @@ export async function submitReview(gymId: string, gymSlug: string, formData: For
       notas,
       alunoAtual: alunoAtual as any,
       status: 'PENDING', // só aparece publicamente após aprovação no painel admin
-      contatoTipo: contatoValor ? contatoTipo : null,
-      contatoValor: contatoValor || null,
     },
   });
-
-  // Lead comercial opcional -- só criado se a pessoa deixou um contato extra
-  // (WhatsApp/e-mail), já que a conta autenticada por si só não é lead.
-  if (contatoValor) {
-    await db.lead.create({
-      data: {
-        nome: autor,
-        contatoTipo,
-        contatoValor,
-        gymNome: gym?.name || gymId,
-        origem: 'avaliacao',
-      },
-    });
-  }
 
   revalidatePath(`/academia/${gymSlug}`);
   revalidatePath('/');

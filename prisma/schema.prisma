@@ -1,0 +1,151 @@
+// Schema do banco de dados do Academia Score
+// Roda em Postgres (Supabase). Para aplicar: `npm run db:push`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Status {
+  SIM
+  NAO
+  A_CONFIRMAR
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AlunoStatus {
+  SIM
+  JA_FUI
+  NAO
+}
+
+model City {
+  id     String @id @default(cuid())
+  nome   String
+  uf     String
+  slug   String @unique
+  ativa  Boolean @default(true)
+  gyms   Gym[]
+}
+
+model Gym {
+  id                String   @id @default(cuid())
+  slug              String   @unique
+  name              String
+  bairro            String
+  quadra            String?
+  address           String
+  phone             String?
+  instagram         String?
+  site              String?
+  lat               Float?
+  lng               Float?
+  gympass           Status   @default(A_CONFIRMAR)
+  gympassNivel      String?
+  totalpass         Status   @default(A_CONFIRMAR)
+  totalpassNivel    String?
+  horarios          String?
+  mensalidade       Float?
+  primeiraMensalidade Float?
+  matricula         Float?
+  fidelidadeMeses   Int?
+  semFidelidade     Boolean?
+  planoNome         String?
+  observacao        String?
+  sourceNote        String?
+  logoUrl           String?
+  isPartner         Boolean  @default(false) // academia parceira (perfil premium de verdade)
+
+  city              City     @relation(fields: [cityId], references: [id])
+  cityId            String
+
+  photos            GymPhoto[]
+  reviews           Review[]
+  favorites         Favorite[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([cityId])
+  @@index([bairro])
+}
+
+model GymPhoto {
+  id       String @id @default(cuid())
+  url      String
+  ordem    Int    @default(0)
+  gym      Gym    @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  gymId    String
+}
+
+// Uma avaliação = notas por categoria (json) + comentário + status de moderação
+model Review {
+  id           String       @id @default(cuid())
+  gym          Gym          @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  gymId        String
+  autor        String
+  notas        Json         // ex: {"Equipamentos": 5, "Limpeza": 4, ...}
+  comentario   String
+  alunoAtual   AlunoStatus?
+  status       ReviewStatus @default(PENDING)
+  reportCount  Int          @default(0)
+  respostaAcademia String?  // resposta pública da academia (recurso premium)
+
+  // Contato de quem avaliou -- NUNCA exibir publicamente. Usado só para leads.
+  contatoTipo  String?
+  contatoValor String?
+
+  createdAt    DateTime     @default(now())
+
+  @@index([gymId])
+  @@index([status])
+}
+
+// Lead capturado ao avaliar (pra você entrar em contato / prospecção comercial)
+model Lead {
+  id           String   @id @default(cuid())
+  nome         String
+  contatoTipo  String
+  contatoValor String
+  gymNome      String
+  origem       String   @default("avaliacao") // avaliacao | formulario_parceria
+  createdAt    DateTime @default(now())
+}
+
+// Favoritos -- vinculado a um identificador de usuário/sessão (sem login obrigatório)
+model Favorite {
+  id         String   @id @default(cuid())
+  gym        Gym      @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  gymId      String
+  sessionId  String   // gerado no browser (cookie), não exige cadastro
+  createdAt  DateTime @default(now())
+
+  @@unique([gymId, sessionId])
+}
+
+// Contatos de academias querendo virar parceira (formulário do rodapé)
+model PartnerLead {
+  id           String   @id @default(cuid())
+  academia     String
+  responsavel  String
+  contato      String
+  mensagem     String?
+  createdAt    DateTime @default(now())
+}
+
+// Painel de admin -- login simples (evoluir para auth real depois)
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}

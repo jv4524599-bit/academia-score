@@ -1,0 +1,26 @@
+[
+  {
+    "label": "👕 Vestiários (exemplo)",
+    "url": "/images/premium/premium-1.jpg"
+  },
+  {
+    "label": "🚴 Cardio (exemplo)",
+    "url": "/images/premium/premium-2.jpg"
+  },
+  {
+    "label": "🏋️ Musculação – inferiores (exemplo)",
+    "url": "/images/premium/premium-3.jpg"
+  },
+  {
+    "label": "Salão (exemplo)",
+    "url": "/images/premium/premium-4.jpg"
+  },
+  {
+    "label": "Estacionamento (exemplo)",
+    "url": "/images/premium/premium-5.jpg"
+  },
+  {
+    "label": "Musculação – superiores (exemplo)",
+    "url": "/images/premium/premium-6.jpg"
+  }
+]

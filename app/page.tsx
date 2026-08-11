@@ -12,41 +12,13 @@ import { avgRatingFromNotas, CURRENT_CITY_SLUG, fmtDatePtBr, reviewAvg, score10 
 // Isso é o que resolve o problema de SEO -- o Google já recebe o HTML pronto.
 export const revalidate = 60; // regenera a página a cada 60s (ISR)
 
-type DemoReview = {
+type RecentReview = {
   autor: string;
   gymName: string;
   comentario: string;
   notas: Record<string, number>;
   data: Date;
-  isDemo: boolean;
 };
-
-const DEMO_RECENT_REVIEWS: DemoReview[] = [
-  {
-    autor: 'Camila R.',
-    gymName: 'Pacheco Fit — Jardim Oriente',
-    comentario: 'Estrutura muito boa e professores atenciosos, recomendo!',
-    notas: { Atendimento: 5, Equipamentos: 5 },
-    data: new Date(Date.now() - 86400000 * 2),
-    isDemo: true,
-  },
-  {
-    autor: 'Rafael S.',
-    gymName: 'Smart Fit — Parque Esplanada III',
-    comentario: 'Bom custo-benefício, mas fica cheia no horário de pico.',
-    notas: { 'Custo-benefício': 5, Lotação: 2 },
-    data: new Date(Date.now() - 86400000 * 5),
-    isDemo: true,
-  },
-  {
-    autor: 'Juliana M.',
-    gymName: 'Vida Fitness Academia',
-    comentario: 'Ambiente limpo e organizado, virei aluna fixa.',
-    notas: { Limpeza: 5, Organização: 5 },
-    data: new Date(Date.now() - 86400000 * 8),
-    isDemo: true,
-  },
-];
 
 async function getData(sessionId: string | null) {
   const city = await db.city.findUnique({ where: { slug: CURRENT_CITY_SLUG } });
@@ -107,7 +79,11 @@ async function getData(sessionId: string | null) {
   return { city, summaries, ranked, bairros, recentReviews, totalApprovedReviews };
 }
 
-export default async function HomePage({ searchParams }: { searchParams: { compare?: string } }) {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: { compare?: string; authError?: string };
+}) {
   const sessionId = getSessionId();
   const data = await getData(sessionId);
 
@@ -117,8 +93,11 @@ export default async function HomePage({ searchParams }: { searchParams: { compa
 
   const { city, summaries, ranked, bairros, recentReviews, totalApprovedReviews } = data;
 
-  const showTop3 = ranked.length >= 3;
-  const top3 = ranked.slice(0, 3);
+  // Só vira "ranking" de verdade quando há pelo menos 3 academias com
+  // avaliação real -- nunca medalha quem ainda não foi avaliado por ninguém.
+  const rankedWithRating = ranked.filter((g) => avgRatingFromNotas(g.reviewNotas));
+  const showTop3 = rankedWithRating.length >= 3;
+  const top3 = rankedWithRating.slice(0, 3);
   const medals = [
     { cls: 'gold', icon: '🥇' },
     { cls: 'silver', icon: '🥈' },
@@ -130,15 +109,23 @@ export default async function HomePage({ searchParams }: { searchParams: { compa
     .map((s) => s.trim())
     .filter(Boolean);
 
-  const realRecent: DemoReview[] = recentReviews.map((r) => ({
+  const recentSource: RecentReview[] = recentReviews.map((r) => ({
     autor: r.autor,
     gymName: r.gym.name,
     comentario: r.comentario,
     notas: r.notas as unknown as Record<string, number>,
     data: r.createdAt,
-    isDemo: false,
   }));
-  const recentSource = realRecent.length >= 3 ? realRecent : [...realRecent, ...DEMO_RECENT_REVIEWS].slice(0, 3);
+
+  const AUTH_ERROR_MESSAGES: Record<string, string> = {
+    google_not_configured: 'Login com Google ainda não está disponível. Tente entrar com e-mail e senha.',
+    google_state: 'Não foi possível confirmar o login com Google. Tente novamente.',
+    google_token: 'Não foi possível concluir o login com Google. Tente novamente.',
+    google_userinfo: 'Não foi possível obter seus dados do Google. Tente novamente.',
+    google_no_email: 'Sua conta Google precisa ter um e-mail associado para entrar.',
+    google_unexpected: 'Algo deu errado no login com Google. Tente novamente.',
+  };
+  const authErrorMessage = searchParams.authError ? AUTH_ERROR_MESSAGES[searchParams.authError] : null;
 
   return (
     <>
@@ -157,10 +144,21 @@ export default async function HomePage({ searchParams }: { searchParams: { compa
             </span>
             @academiascore
           </a>
-          <Link href="/admin" style={{ marginLeft: 'auto', opacity: 0.6 }}>
-            🔒 Painel
-          </Link>
         </nav>
+        {authErrorMessage && (
+          <div
+            style={{
+              maxWidth: 900,
+              margin: '0 auto',
+              padding: '8px 16px',
+              fontSize: 13.5,
+              color: 'var(--warn)',
+              textAlign: 'center',
+            }}
+          >
+            {authErrorMessage}
+          </div>
+        )}
         <div className="header-inner">
           <div>
             <div className="eyebrow">
@@ -229,15 +227,21 @@ export default async function HomePage({ searchParams }: { searchParams: { compa
                     >
                       <span className="top3-medal">{medals[i].icon}</span>
                       <h4>{g.name}</h4>
-                      <span className="top3-score">
-                        {r ? `★ ${r.avg.toFixed(1)} · ${score10(r.avg)}/10` : 'Sem avaliações ainda'}
-                      </span>
+                      <span className="top3-score">{r ? `★ ${r.avg.toFixed(1)} · ${score10(r.avg)}/10` : ''}</span>
                     </Link>
                   );
                 })}
               </div>
             </div>
-          ) : null
+          ) : (
+            <div className="section-block">
+              <h3 className="top3-title">Academias da cidade</h3>
+              <p className="note" style={{ marginTop: -4 }}>
+                O ranking por nota aparece aqui assim que pelo menos 3 academias tiverem avaliações reais. Enquanto
+                isso, veja todas as academias cadastradas na lista abaixo.
+              </p>
+            </div>
+          )
         }
         trust={
           <div className="trust-section section-block">
@@ -266,29 +270,36 @@ export default async function HomePage({ searchParams }: { searchParams: { compa
             >
               🏆 Cadastre sua Academia
             </PartnerCtaButton>
+            <p className="note" style={{ marginTop: 10 }}>
+              O pagamento de uma parceria não altera a posição da academia no ranking — a ordem é 100% baseada nas
+              notas recebidas.
+            </p>
           </div>
         }
         premium={<PremiumDemo />}
         recent={
           <div className="recent-reviews section-block">
             <h3>Últimas avaliações</h3>
-            <div className="recent-reviews-grid">
-              {recentSource.map((rv, i) => (
-                <div className="recent-review-card" key={i}>
-                  <div className="recent-review-top">
-                    <span className="rr-name">
-                      {rv.autor}
-                      {rv.isDemo ? <em className="demo-tag"> (exemplo)</em> : null}
-                    </span>
-                    <span className="rr-stars">★ {reviewAvg(rv.notas).toFixed(1)}</span>
+            {recentSource.length > 0 ? (
+              <div className="recent-reviews-grid">
+                {recentSource.map((rv, i) => (
+                  <div className="recent-review-card" key={i}>
+                    <div className="recent-review-top">
+                      <span className="rr-name">{rv.autor}</span>
+                      <span className="rr-stars">★ {reviewAvg(rv.notas).toFixed(1)}</span>
+                    </div>
+                    <p>&quot;{rv.comentario}&quot;</p>
+                    <div className="recent-review-date">
+                      {rv.gymName} · {fmtDatePtBr(rv.data)}
+                    </div>
                   </div>
-                  <p>&quot;{rv.comentario}&quot;</p>
-                  <div className="recent-review-date">
-                    {rv.gymName} · {fmtDatePtBr(rv.data)}
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="note" style={{ marginTop: 0 }}>
+                Ainda não há avaliações públicas nesta cidade. Seja o primeiro a avaliar uma academia!
+              </p>
+            )}
           </div>
         }
       />
@@ -298,9 +309,12 @@ export default async function HomePage({ searchParams }: { searchParams: { compa
           <div className="partner-text">
             <h3>É dono(a) de uma academia em {city.nome}?</h3>
             <p>
-              Academias parceiras podem ganhar selos de destaque (Melhor atendimento, Melhor custo-benefício, Mais
-              equipada, Menos lotada), galeria de fotos e vídeos, tabela de planos, tour 360° e botão direto de
-              WhatsApp no perfil. Fale com a gente para saber mais.
+              Academias parceiras ganham perfil com galeria de fotos e vídeos ampliada, tabela de planos, tour 360° e
+              botão direto de WhatsApp — para ajudar quem está pesquisando a te conhecer melhor. Fale com a gente
+              para saber mais.
+            </p>
+            <p className="note" style={{ marginTop: -4, marginBottom: 12 }}>
+              O pagamento de uma parceria não altera a posição da academia no ranking.
             </p>
             <PartnerCtaButton className="btn-add partner-cta-hero">🏆 Cadastre sua Academia</PartnerCtaButton>{' '}
             <a

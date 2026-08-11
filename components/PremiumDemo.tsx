@@ -230,7 +230,9 @@ export default function PremiumDemo() {
             </div>
 
             <div className="premium-section">
-              <h4>💰 Planos</h4>
+              <h4>
+                💰 Planos <em className="demo-tag">(exemplo)</em>
+              </h4>
               <table className="premium-plans">
                 <tbody>
                   <tr>
@@ -310,9 +312,11 @@ export default function PremiumDemo() {
             </div>
 
             <div className="premium-section">
-              <h4>⭐ Resposta da Academia</h4>
+              <h4>
+                ⭐ Resposta da Academia <em className="demo-tag">(exemplo)</em>
+              </h4>
               <div className="premium-review-example">
-                <strong>Maria S.</strong> — ★★★★☆
+                <strong>Maria S.</strong> — ★★★★☆ <em className="demo-tag">(avaliação de exemplo)</em>
                 <br />
                 &quot;Adorei a estrutura, só acho que fica um pouco cheia às 19h.&quot;
                 <div className="premium-review-reply">
@@ -447,10 +451,14 @@ export default function PremiumDemo() {
 
             <div className="premium-convert">
               <h4>Sua academia pode aparecer assim.</h4>
-              <p>Aumente sua visibilidade, gere mais matrículas e destaque sua academia para milhares de pessoas.</p>
+              <p>Aumente sua visibilidade e ajude mais gente a conhecer a estrutura da sua academia.</p>
               <button className="premium-cta-big" onClick={goToPartnerForm}>
                 🏆 Quero tornar minha academia parceira
               </button>
+              <p className="note" style={{ marginTop: 10 }}>
+                O pagamento de uma parceria não altera a posição da academia no ranking — a ordem continua sendo só
+                pela nota das avaliações.
+              </p>
             </div>
           </div>
         </div>

@@ -46,9 +46,10 @@ export default function HowItWorksButton() {
             <div className="premium-section">
               <h4>✅ Como são verificadas as avaliações</h4>
               <p>
-                Pedimos nome e um contato (WhatsApp ou e-mail) de quem avalia, para reduzir avaliações falsas ou
-                duplicadas. Também perguntamos se a pessoa é aluna atual, já foi aluna, ou apenas visitou — essa
-                informação aparece junto ao comentário para dar mais contexto.
+                Para avaliar, é preciso entrar com uma conta (Google ou e-mail e senha) — isso reduz avaliações
+                falsas ou duplicadas. Também perguntamos se a pessoa é aluna atual, já foi aluna, ou apenas visitou —
+                essa informação aparece junto ao comentário para dar mais contexto. Cada conta pode avaliar uma
+                mesma academia apenas uma vez, e toda avaliação passa por moderação antes de aparecer no perfil.
               </p>
             </div>
             <div className="premium-section">

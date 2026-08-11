@@ -8,12 +8,22 @@ import { avgRatingFromNotas } from '@/lib/gym-helpers';
 // (/cidade/[slug]) em vez de modal, pra ficar indexável no Google.
 export const revalidate = 60;
 
+const SITE_URL = 'https://academia-score.vercel.app';
+
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const city = await db.city.findUnique({ where: { slug: params.slug } });
   if (!city) return {};
+
+  const title = `Academias em ${city.nome} — ${city.uf} | Academia Score`;
+  const description = `Ranking completo de academias em ${city.nome} - ${city.uf}, com preços, avaliações reais e convênios (Gympass/TotalPass).`;
+  const url = `${SITE_URL}/cidade/${city.slug}`;
+
   return {
-    title: `Academias em ${city.nome} — ${city.uf} | Academia Score`,
-    description: `Ranking completo de academias em ${city.nome} - ${city.uf}, com preços, avaliações reais e convênios (Gympass/TotalPass).`,
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: { title, description, url, siteName: 'Academia Score', type: 'website', locale: 'pt_BR' },
+    twitter: { card: 'summary', title, description },
   };
 }
 
@@ -84,7 +94,7 @@ export default async function CityPage({ params }: { params: { slug: string } })
                     {i + 1}. {g.name}
                   </strong>
                   <div className="similar-gym-meta">
-                    {g.bairro} · {r ? `★ ${r.avg.toFixed(1)}` : 'Sem avaliações'}
+                    {g.bairro} · {r ? `★ ${r.avg.toFixed(1)}` : 'Ainda não avaliada'}
                   </div>
                 </div>
                 <Link href={`/academia/${g.slug}`} className="btn-sm" style={{ textDecoration: 'none' }}>

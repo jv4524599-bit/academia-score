@@ -219,7 +219,7 @@ export default function HomeApp({
                         <span className="score10">{score10(r.avg)}/10</span>
                       </>
                     ) : (
-                      <span className="count">Sem avaliações ainda</span>
+                      <span className="count">Ainda não avaliada</span>
                     )}
                   </div>
                   <div className="row-actions">
@@ -313,7 +313,7 @@ function CompareTable({
       label: 'Nota geral',
       get: (g) => {
         const r = ratings.get(g.id);
-        return r ? `★ ${r.avg.toFixed(1)} (${r.count} aval.)` : 'Sem avaliações';
+        return r ? `★ ${r.avg.toFixed(1)} (${r.count} aval.)` : 'Ainda não avaliada';
       },
       numeric: (g) => ratings.get(g.id)?.avg ?? null,
     },

@@ -28,6 +28,44 @@ enum AlunoStatus {
   NAO
 }
 
+enum AuthProvider {
+  GOOGLE
+  EMAIL
+}
+
+// Conta de usuário (visitante que quer avaliar). Só nome, e-mail e provedor
+// de login -- nada além disso. O e-mail nunca é exibido publicamente; nas
+// avaliações mostramos só "Nome I." (primeiro nome + inicial do sobrenome).
+// Preparado para, no futuro, um mesmo usuário virar ACADEMIA (dono de uma
+// academia parceira) ou ADMIN sem precisar remodelar a tabela.
+model User {
+  id           String       @id @default(cuid())
+  name         String
+  email        String       @unique
+  passwordHash String?      // null quando a conta é só Google
+  provider     AuthProvider @default(EMAIL)
+  image        String?
+  role         String       @default("USER") // USER | ACADEMIA | ADMIN (preparado, não usado ainda)
+  createdAt    DateTime     @default(now())
+
+  sessions     Session[]
+  reviews      Review[]
+}
+
+// Sessão de login do usuário (cookie httpOnly "us" guarda só o token).
+// Ficar em tabela própria (em vez de JWT) permite revogar sessões e não
+// depende de nenhuma variável de segredo adicional além do banco.
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
 model City {
   id     String @id @default(cuid())
   nome   String
@@ -92,7 +130,9 @@ model Review {
   id           String       @id @default(cuid())
   gym          Gym          @relation(fields: [gymId], references: [id], onDelete: Cascade)
   gymId        String
-  autor        String
+  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId       String?      // avaliação agora exige login; nullable só por compatibilidade com dados antigos
+  autor        String       // nome exibido no momento da avaliação ("Nome I."), congelado aqui p/ histórico
   notas        Json         // ex: {"Equipamentos": 5, "Limpeza": 4, ...}
   comentario   String
   alunoAtual   AlunoStatus?
@@ -108,6 +148,7 @@ model Review {
 
   @@index([gymId])
   @@index([status])
+  @@index([userId])
 }
 
 // Lead capturado ao avaliar (pra você entrar em contato / prospecção comercial)

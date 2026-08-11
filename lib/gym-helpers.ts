@@ -71,26 +71,11 @@ export function normalizeText(s: string | null | undefined): string {
     .toLowerCase();
 }
 
-export function hashStr(str: string): number {
-  let h = 0;
-  for (let i = 0; i < str.length; i++) {
-    h = (h * 31 + str.charCodeAt(i)) >>> 0;
-  }
-  return h;
-}
-
-// Gera o histórico simulado de nota dos últimos 6 meses (mesmo algoritmo
-// do protótipo -- é uma demonstração, não dado real histórico).
-export function ratingHistory(gymId: string, currentScore10: number) {
-  const h = hashStr(gymId);
-  const labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'];
-  return labels.map((m, i) => {
-    const noise = ((h >> (i * 3)) % 7) / 10 - 0.3;
-    let v = currentScore10 - (5 - i) * 0.15 + noise;
-    v = Math.max(5.5, Math.min(10, v));
-    return { m, v: i === 5 ? currentScore10 : parseFloat(v.toFixed(1)) };
-  });
-}
+// Removido: gerador de "histórico de nota" simulado (baseado em hash do id,
+// sem nenhum dado real por trás). Mostrar isso como se fosse um gráfico
+// real violaria a regra de nunca exibir dado fictício como se fosse real.
+// Quando houver histórico de nota real (snapshots ao longo do tempo), essa
+// função pode voltar, lendo do banco em vez de simular.
 
 export function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371;

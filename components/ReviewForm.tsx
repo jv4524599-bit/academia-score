@@ -9,7 +9,6 @@ import { submitReview } from '@/app/academia/[slug]/actions';
 // categoria + nome + "é aluno(a)?" + contato + comentário.
 export default function ReviewForm({ gymId, gymSlug }: { gymId: string; gymSlug: string }) {
   const [stars, setStars] = useState<Record<string, number>>({});
-  const [autor, setAutor] = useState('');
   const [alunoAtual, setAlunoAtual] = useState('SIM');
   const [contactType, setContactType] = useState('whatsapp');
   const [contactValue, setContactValue] = useState('');
@@ -33,17 +32,14 @@ export default function ReviewForm({ gymId, gymSlug }: { gymId: string; gymSlug:
       alert('Escreva um comentário curto sobre sua experiência.');
       return;
     }
-    if (!contactValue.trim()) {
-      alert('Informe seu WhatsApp ou e-mail para concluir a avaliação.');
-      return;
-    }
 
     const formData = new FormData();
-    formData.set('autor', autor);
     formData.set('comentario', comentario);
     formData.set('alunoAtual', alunoAtual);
-    formData.set('contatoTipo', contactType);
-    formData.set('contatoValor', contactValue);
+    if (contactValue.trim()) {
+      formData.set('contatoTipo', contactType);
+      formData.set('contatoValor', contactValue);
+    }
     formData.set('notas', JSON.stringify(stars));
 
     startTransition(async () => {
@@ -89,13 +85,6 @@ export default function ReviewForm({ gymId, gymSlug }: { gymId: string; gymSlug:
           </div>
         ))}
       </div>
-      <input
-        type="text"
-        placeholder="Seu nome (ou apelido)"
-        style={{ marginTop: 10 }}
-        value={autor}
-        onChange={(e) => setAutor(e.target.value)}
-      />
       <label style={{ fontSize: 12.5, color: 'var(--ink-soft)', fontWeight: 600, display: 'block', marginTop: 10 }}>
         É aluno(a) dessa academia atualmente?
       </label>
@@ -117,6 +106,9 @@ export default function ReviewForm({ gymId, gymSlug }: { gymId: string; gymSlug:
         <option value="JA_FUI">Já fui aluno(a), mas não sou mais</option>
         <option value="NAO">Não, apenas visitei/conheço</option>
       </select>
+      <label style={{ fontSize: 12.5, color: 'var(--ink-soft)', fontWeight: 600, display: 'block', marginTop: 10 }}>
+        WhatsApp para contato (opcional)
+      </label>
       <div className="field-row">
         <select value={contactType} onChange={(e) => setContactType(e.target.value)}>
           <option value="whatsapp">WhatsApp</option>
@@ -124,7 +116,7 @@ export default function ReviewForm({ gymId, gymSlug }: { gymId: string; gymSlug:
         </select>
         <input
           type="text"
-          placeholder="Seu WhatsApp ou e-mail"
+          placeholder="Opcional"
           value={contactValue}
           onChange={(e) => setContactValue(e.target.value)}
         />

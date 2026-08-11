@@ -4,7 +4,8 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { db } from '@/lib/db';
 import { getSessionId } from '@/lib/session';
-import ReviewForm from '@/components/ReviewForm';
+import { getCurrentUser, displayName } from '@/lib/auth';
+import ReviewGate from '@/components/ReviewGate';
 import GymFavoriteButton from '@/components/GymFavoriteButton';
 import ReportReviewButton from '@/components/ReportReviewButton';
 import { Badge } from '@/components/Badge';
@@ -14,7 +15,6 @@ import {
   fmtMoney,
   haversineKm,
   idealParaBadges,
-  ratingHistory,
   reviewAvg,
   score10,
   type StatusStr,
@@ -25,17 +25,47 @@ import {
 // pra aparecer certinho no Google e quando compartilhado no WhatsApp.
 export const revalidate = 60;
 
+const SITE_URL = 'https://academia-score.vercel.app';
+
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const gym = await db.gym.findUnique({ where: { slug: params.slug } });
   if (!gym) return {};
+
+  const title = `${gym.name} — Avaliações, preço e horários | Academia Score`;
+  const description = `Veja avaliações reais, preço da mensalidade, horários e se aceita Gympass/TotalPass na ${gym.name}, em ${gym.bairro}, Valparaíso de Goiás.`;
+  const url = `${SITE_URL}/academia/${gym.slug}`;
+
   return {
-    title: `${gym.name} — Avaliações, preço e horários | Academia Score`,
-    description: `Veja avaliações reais, preço da mensalidade, horários e se aceita Gympass/TotalPass na ${gym.name}, em ${gym.bairro}, Valparaíso de Goiás.`,
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: 'Academia Score',
+      type: 'website',
+      locale: 'pt_BR',
+      images: gym.logoUrl ? [{ url: gym.logoUrl }] : undefined,
+    },
+    twitter: {
+      card: 'summary',
+      title,
+      description,
+      images: gym.logoUrl ? [gym.logoUrl] : undefined,
+    },
   };
 }
 
-export default async function GymPage({ params }: { params: { slug: string } }) {
+export default async function GymPage({
+  params,
+  searchParams,
+}: {
+  params: { slug: string };
+  searchParams: { avaliar?: string };
+}) {
   const sessionId = getSessionId();
+  const currentUser = await getCurrentUser();
 
   const gym: any = await db.gym.findUnique({
     where: { slug: params.slug },
@@ -77,20 +107,20 @@ export default async function GymPage({ params }: { params: { slug: string } }) 
     picked = [...sameBairro, ...rest].slice(0, 3);
   }
   const similar = picked.map((g) => {
-    const mensalidadeReal = g.mensalidade != null;
-    const mensalidade = mensalidadeReal ? g.mensalidade : 89.9;
     const hasCoords = hasCurrentCoords && g.lat != null && g.lng != null;
     const distancia = hasCoords ? haversineKm(gym.lat, gym.lng, g.lat, g.lng).toFixed(1) : null;
     const r = avgRatingFromNotas((g.reviews as any[]).map((rv) => rv.notas as unknown as Record<string, number>));
-    return { g, mensalidade, mensalidadeReal, distancia, r };
+    return { g, distancia, r };
   });
 
-  const hist = rating ? ratingHistory(gym.id, parseFloat(score10(rating.avg))) : null;
+  const hasBeneficios = gym.gympass !== 'A_CONFIRMAR' || gym.totalpass !== 'A_CONFIRMAR';
+  const idealBadges = idealParaBadges(gym.slug);
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--paper)', padding: '24px 16px 60px' }}>
       <div>
         <div className="modal" style={{ maxWidth: 640, margin: '0 auto', maxHeight: 'none', animation: 'none' }}>
+          {/* 1. Nome */}
           <div className="modal-head">
             <div className="modal-logo">
               {gym.logoUrl && <Image src={gym.logoUrl} alt={`Logo ${gym.name}`} width={64} height={64} />}
@@ -101,11 +131,6 @@ export default async function GymPage({ params }: { params: { slug: string } }) 
                 <span className="quadra-chip">
                   {gym.quadra || '-'} · {gym.bairro}
                 </span>
-                <span className="dchip-stars">
-                  {rating
-                    ? `${'★'.repeat(filled)}${'☆'.repeat(5 - filled)} ${score10(rating.avg)}`
-                    : '☆☆☆☆☆'}
-                </span>
               </span>
             </div>
             <Link href="/" className="modal-close" style={{ textDecoration: 'none' }} aria-label="Voltar">
@@ -114,52 +139,30 @@ export default async function GymPage({ params }: { params: { slug: string } }) 
           </div>
 
           <div className="modal-body">
-            <h4>📸 Galeria</h4>
-            {gym.photos.length > 0 ? (
-              <div className="gallery-cat-grid gallery-simple-grid">
-                {gym.photos.map((p: any) => (
-                  <div className="gallery-cat" key={p.id}>
-                    <div className="gallery-cat-img">
-                      <Image src={p.url} alt={`Foto de ${gym.name}`} width={300} height={300} />
-                    </div>
+            {/* 2 e 3. Nota + Nº de avaliações */}
+            {rating ? (
+              <div className="rating-showcase">
+                <span className="rating-big">{score10(rating.avg)}</span>
+                <div>
+                  <div className="rating-stars-row">
+                    {'⭐'.repeat(filled)}
+                    {'☆'.repeat(5 - filled)}
                   </div>
-                ))}
+                  <div className="rating-count">({rating.count} avaliação{rating.count === 1 ? '' : 's'})</div>
+                </div>
               </div>
             ) : (
-              <p className="note">Ainda sem fotos cadastradas.</p>
+              <p style={{ margin: '0 0 4px', fontSize: 14.5 }}>
+                ☆☆☆☆☆ <strong>Ainda não avaliada.</strong>{' '}
+                <a href="#avaliar" style={{ color: 'var(--terracota)' }}>
+                  Seja o primeiro a avaliar
+                </a>
+              </p>
             )}
 
-            <h4>Endereço</h4>
-            {gym.mensalidade ? (
-              <>
-                <p style={{ margin: 0, fontSize: 14.5 }}>{gym.address}</p>
-                <p className="plan-highlight">
-                  💰 {gym.planoNome ? `Plano ${gym.planoNome}: ` : ''}
-                  {fmtMoney(gym.mensalidade)}/mês
-                  {gym.semFidelidade
-                    ? ' · sem fidelidade'
-                    : gym.fidelidadeMeses
-                    ? ` · fidelidade de ${gym.fidelidadeMeses} meses`
-                    : ''}
-                </p>
-                {gym.primeiraMensalidade != null && (
-                  <p className="plan-promo">🎁 1ª mensalidade por {fmtMoney(gym.primeiraMensalidade)}</p>
-                )}
-                {gym.matricula != null && (
-                  <p className="plan-promo">
-                    📝 Matrícula: {gym.matricula === 0 ? 'grátis' : fmtMoney(gym.matricula)}
-                  </p>
-                )}
-                {gym.observacao && (
-                  <p className="note" style={{ marginTop: 4 }}>
-                    {gym.observacao}
-                  </p>
-                )}
-              </>
-            ) : (
-              <p style={{ margin: 0, fontSize: 14.5 }}>{gym.address}</p>
-            )}
-
+            {/* 4. Localização */}
+            <h4>Localização</h4>
+            <p style={{ margin: 0, fontSize: 14.5 }}>{gym.address}</p>
             <div className="maps-row">
               {gym.lat != null && gym.lng != null && (
                 <a
@@ -186,24 +189,83 @@ export default async function GymPage({ params }: { params: { slug: string } }) 
               <GymFavoriteButton gymId={gym.id} gymSlug={gym.slug} initialFavorite={isFavorite} />
             </div>
 
-            <h4>Convênios</h4>
-            <div className="badges">
-              <Badge label="Gympass" status={gym.gympass as StatusStr} nivel={gym.gympassNivel} />
-              <Badge label="TotalPass" status={gym.totalpass as StatusStr} nivel={gym.totalpassNivel} />
+            {/* 5. Preço (só se existir) */}
+            {gym.mensalidade != null && (
+              <>
+                <h4>Preço</h4>
+                <p className="plan-highlight">
+                  💰 {gym.planoNome ? `Plano ${gym.planoNome}: ` : ''}
+                  {fmtMoney(gym.mensalidade)}/mês
+                  {gym.semFidelidade
+                    ? ' · sem fidelidade'
+                    : gym.fidelidadeMeses
+                    ? ` · fidelidade de ${gym.fidelidadeMeses} meses`
+                    : ''}
+                </p>
+                {gym.primeiraMensalidade != null && (
+                  <p className="plan-promo">🎁 1ª mensalidade por {fmtMoney(gym.primeiraMensalidade)}</p>
+                )}
+                {gym.matricula != null && (
+                  <p className="plan-promo">
+                    📝 Matrícula: {gym.matricula === 0 ? 'grátis' : fmtMoney(gym.matricula)}
+                  </p>
+                )}
+                {gym.observacao && (
+                  <p className="note" style={{ marginTop: 4 }}>
+                    {gym.observacao}
+                  </p>
+                )}
+              </>
+            )}
+
+            {/* 6. Benefícios (só se existir algo relevante) */}
+            {hasBeneficios && (
+              <>
+                <h4>Benefícios</h4>
+                <div className="badges">
+                  <Badge label="Gympass" status={gym.gympass as StatusStr} nivel={gym.gympassNivel} />
+                  <Badge label="TotalPass" status={gym.totalpass as StatusStr} nivel={gym.totalpassNivel} />
+                </div>
+              </>
+            )}
+            {idealBadges.length > 0 && (
+              <div className="ideal-para-row" style={{ marginTop: 8 }}>
+                {idealBadges.map((b) => (
+                  <span className="ideal-badge" key={b}>
+                    {b}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* 7. CTA principal */}
+            <div className="maps-row" style={{ marginTop: 14 }}>
+              <a href="#avaliar" className="btn-add" style={{ textDecoration: 'none' }}>
+                ⭐ {rating ? 'Deixar avaliação' : 'Seja o primeiro a avaliar'}
+              </a>
             </div>
 
-            <h4>Ideal para</h4>
-            <div className="ideal-para-row">
-              {idealParaBadges(gym.slug).map((b) => (
-                <span className="ideal-badge" key={b}>
-                  {b}
-                </span>
-              ))}
-            </div>
+            {/* Fotos */}
+            <h4>📸 Galeria</h4>
+            {gym.photos.length > 0 ? (
+              <div className="gallery-cat-grid gallery-simple-grid">
+                {gym.photos.map((p: any) => (
+                  <div className="gallery-cat" key={p.id}>
+                    <div className="gallery-cat-img">
+                      <Image src={p.url} alt={`Foto de ${gym.name}`} width={300} height={300} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="note">Ainda sem fotos cadastradas.</p>
+            )}
 
+            {/* Horários */}
             <h4>Horários de funcionamento</h4>
-            <p style={{ margin: 0, fontSize: 14.5, whiteSpace: 'pre-line' }}>{gym.horarios || 'A confirmar'}</p>
+            <p style={{ margin: 0, fontSize: 14.5, whiteSpace: 'pre-line' }}>{gym.horarios || 'Não informado'}</p>
 
+            {/* Redes sociais / site */}
             {gym.instagram && (
               <>
                 <h4>Instagram</h4>
@@ -217,46 +279,7 @@ export default async function GymPage({ params }: { params: { slug: string } }) 
               </>
             )}
 
-            <h4>Avaliação média</h4>
-            {rating ? (
-              <>
-                <div className="rating-showcase">
-                  <span className="rating-big">{score10(rating.avg)}</span>
-                  <div>
-                    <div className="rating-stars-row">
-                      {'⭐'.repeat(filled)}
-                      {'☆'.repeat(5 - filled)}
-                    </div>
-                    <div className="rating-count">({rating.count} avaliações)</div>
-                  </div>
-                </div>
-                <p className="recommend-line">
-                  {Math.round((rating.avg / 5) * 100)}% dos usuários recomendam esta academia{' '}
-                  <em className="demo-tag">(estimado)</em>
-                </p>
-                {hist && (
-                  <>
-                    <h4 style={{ marginTop: 18 }}>📈 Histórico da nota — últimos 6 meses</h4>
-                    <div className="rating-history">
-                      <RatingHistorySvg months={hist} />
-                    </div>
-                    <div className="rating-history-labels">
-                      {hist.map((m) => (
-                        <span key={m.m}>
-                          {m.m}
-                          <br />
-                          <strong>{m.v.toFixed(1).replace('.', ',')}</strong>
-                        </span>
-                      ))}
-                    </div>
-                    <p className="note">Evolução simulada para fins de demonstração.</p>
-                  </>
-                )}
-              </>
-            ) : (
-              'Sem avaliações ainda'
-            )}
-
+            {/* Avaliações */}
             <h4>Comentários</h4>
             <div>
               {gym.reviews.length ? (
@@ -276,14 +299,20 @@ export default async function GymPage({ params }: { params: { slug: string } }) 
                 })
               ) : (
                 <p style={{ color: 'var(--ink-soft)', fontSize: 14 }}>
-                  Ainda sem comentários. Seja o primeiro a avaliar.
+                  Ainda não avaliada. Seja o primeiro a avaliar.
                 </p>
               )}
             </div>
 
-            <ReviewForm gymId={gym.id} gymSlug={gym.slug} />
-            <p className="note">{gym.sourceNote || ''}</p>
+            <ReviewGate
+              gymId={gym.id}
+              gymSlug={gym.slug}
+              loggedInDisplayName={currentUser ? displayName(currentUser.name) : null}
+              autoOpen={searchParams.avaliar === '1'}
+            />
+            {gym.sourceNote && <p className="note">{gym.sourceNote}</p>}
 
+            {/* Compare com academias semelhantes */}
             {similar.length > 0 && (
               <>
                 <h4 style={{ marginTop: 22 }}>Compare com academias semelhantes</h4>
@@ -293,12 +322,8 @@ export default async function GymPage({ params }: { params: { slug: string } }) 
                       <div>
                         <strong>{s.g.name}</strong>
                         <div className="similar-gym-meta">
-                          {s.r ? `★ ${s.r.avg.toFixed(1)}` : 'Sem avaliações'} · {fmtMoney(s.mensalidade)}/mês
-                          {!s.mensalidadeReal ? (
-                            <em className="demo-tag"> (estimado)</em>
-                          ) : (
-                            ''
-                          )}
+                          {s.r ? `★ ${s.r.avg.toFixed(1)}` : 'Ainda não avaliada'} ·{' '}
+                          {s.g.mensalidade != null ? `${fmtMoney(s.g.mensalidade)}/mês` : 'Preço não informado'}
                           {s.distancia !== null ? ` · ${s.distancia} km` : ''}
                         </div>
                       </div>
@@ -314,27 +339,5 @@ export default async function GymPage({ params }: { params: { slug: string } }) 
         </div>
       </div>
     </div>
-  );
-}
-
-function RatingHistorySvg({ months }: { months: Array<{ m: string; v: number }> }) {
-  const w = 280;
-  const h = 70;
-  const pad = 8;
-  const min = 5;
-  const max = 10;
-  const points = months.map((pt, i) => {
-    const x = pad + (i * (w - 2 * pad)) / 5;
-    const y = h - pad - ((pt.v - min) / (max - min)) * (h - 2 * pad);
-    return { x, y };
-  });
-  const pointsStr = points.map((p) => `${p.x},${p.y}`).join(' ');
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: 'auto' }}>
-      <polyline points={pointsStr} fill="none" stroke="#A63F27" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
-      {points.map((p, i) => (
-        <circle key={i} cx={p.x} cy={p.y} r={3} fill="#D6A23D" />
-      ))}
-    </svg>
   );
 }

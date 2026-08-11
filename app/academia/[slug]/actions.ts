@@ -3,13 +3,20 @@
 import { db } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { getOrCreateSessionId } from '@/lib/session';
+import { displayName, getCurrentUser } from '@/lib/auth';
 
 // Server Action: roda no servidor, direto a partir do formulário de
 // avaliação (ReviewForm, Client Component). Substitui o submitReview()
 // do protótipo -- agora com notas por categoria e alunoAtual, salvando
-// de verdade no banco em vez de window.storage.
+// de verdade no banco em vez de window.storage. Exige login: o nome exibido
+// vem sempre da conta autenticada, nunca de texto digitado pelo usuário
+// (evita nome falso e mantém "Nome I." consistente em todo o site).
 export async function submitReview(gymId: string, gymSlug: string, formData: FormData) {
-  const autor = String(formData.get('autor') || '').trim() || 'Anônimo';
+  const user = await getCurrentUser();
+  if (!user) {
+    throw new Error('Você precisa estar logado para avaliar.');
+  }
+  const autor = displayName(user.name);
   const comentario = String(formData.get('comentario') || '').trim();
   const alunoAtualRaw = String(formData.get('alunoAtual') || '');
   const contatoTipo = String(formData.get('contatoTipo') || 'whatsapp');
@@ -29,37 +36,45 @@ export async function submitReview(gymId: string, gymSlug: string, formData: For
   if (!comentario) {
     throw new Error('Escreva um comentário curto sobre sua experiência.');
   }
-  if (!contatoValor) {
-    throw new Error('Informe seu WhatsApp ou e-mail para concluir a avaliação.');
-  }
 
   const alunoAtual = ['SIM', 'JA_FUI', 'NAO'].includes(alunoAtualRaw) ? alunoAtualRaw : undefined;
 
   const gym = await db.gym.findUnique({ where: { id: gymId } });
 
+  // Uma avaliação por usuário por academia -- evita duplicidade agora que
+  // temos conta de verdade (antes dependia só do contato informado).
+  const already = await db.review.findFirst({ where: { gymId, userId: user.id } });
+  if (already) {
+    throw new Error('Você já avaliou esta academia.');
+  }
+
   await db.review.create({
     data: {
       gymId,
+      userId: user.id,
       autor,
       comentario,
       notas,
       alunoAtual: alunoAtual as any,
       status: 'PENDING', // só aparece publicamente após aprovação no painel admin
-      contatoTipo,
-      contatoValor,
+      contatoTipo: contatoValor ? contatoTipo : null,
+      contatoValor: contatoValor || null,
     },
   });
 
-  // Mesmo lead que capturávamos antes, agora persistido de verdade
-  await db.lead.create({
-    data: {
-      nome: autor,
-      contatoTipo,
-      contatoValor,
-      gymNome: gym?.name || gymId,
-      origem: 'avaliacao',
-    },
-  });
+  // Lead comercial opcional -- só criado se a pessoa deixou um contato extra
+  // (WhatsApp/e-mail), já que a conta autenticada por si só não é lead.
+  if (contatoValor) {
+    await db.lead.create({
+      data: {
+        nome: autor,
+        contatoTipo,
+        contatoValor,
+        gymNome: gym?.name || gymId,
+        origem: 'avaliacao',
+      },
+    });
+  }
 
   revalidatePath(`/academia/${gymSlug}`);
   revalidatePath('/');

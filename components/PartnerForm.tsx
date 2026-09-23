@@ -26,7 +26,7 @@ export default function PartnerForm() {
     return (
       <div className="partner-form">
         <h4>Recebemos seu contato!</h4>
-        <p style={{ color: '#C9C4B6', fontSize: 13.5 }}>
+        <p style={{ color: '#A8A8A2', fontSize: 13.5 }}>
           Obrigado pelo interesse. Nossa equipe vai entrar em contato em breve. Você também pode escrever direto
           para <strong>parcerias@academiascore.com.br</strong>.
         </p>

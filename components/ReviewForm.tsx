@@ -91,7 +91,7 @@ export default function ReviewForm({ gymId, gymSlug }: { gymId: string; gymSlug:
           padding: '8px 10px',
           border: '1px solid var(--line)',
           borderRadius: 'var(--radius)',
-          fontFamily: "'Inter',sans-serif",
+          fontFamily: "'Manrope',sans-serif",
           fontSize: 14,
           marginBottom: 8,
           background: '#fff',

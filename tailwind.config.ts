@@ -1,29 +1,31 @@
 import type { Config } from 'tailwindcss';
 
-// Mesma paleta de cores e fontes do protótipo original --
-// assim o visual não muda nada na migração.
+// Identidade "Preto + Verde Neon" -- espelha as variáveis CSS de
+// app/globals.css (:root). Mudar aqui e lá juntos ao ajustar a marca.
 const config: Config = {
   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        paper: '#E7E2D6',
-        'paper-2': '#DED7C6',
-        ink: '#20262B',
-        'ink-soft': '#565C5E',
-        clay: '#A63F27',
-        'clay-dark': '#832F1C',
+        paper: '#F4F4F1',
+        'paper-2': '#E8E8E3',
+        ink: '#0A0A0A',
+        'ink-soft': '#64645D',
+        clay: '#2F6A00',
+        'clay-dark': '#1F4A00',
+        neon: '#C6FF3D',
+        'neon-dark': '#A6E600',
         gold: '#D6A23D',
         sage: '#4C6B52',
         'sage-bg': '#DDE5D9',
         warn: '#9B3A34',
         'warn-bg': '#E9D9D6',
-        line: '#C6BFAE',
-        card: '#F3EFE4',
+        line: '#DBDBD5',
+        card: '#FFFFFF',
       },
       fontFamily: {
-        display: ['Oswald', 'sans-serif'],
-        body: ['Inter', 'sans-serif'],
+        display: ['Bebas Neue', 'sans-serif'],
+        body: ['Manrope', 'sans-serif'],
         mono: ['IBM Plex Mono', 'monospace'],
       },
       borderRadius: {

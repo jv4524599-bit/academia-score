@@ -8,7 +8,10 @@ const DESCRIPTION =
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: TITLE, template: '%s | Academia Score' },
+  // Título simples (sem `template`): as páginas internas já montam seu
+  // próprio título completo (ex.: "Nome da academia | Academia Score"),
+  // então um template aqui duplicava o sufixo ("... | Academia Score | Academia Score").
+  title: TITLE,
   description: DESCRIPTION,
   alternates: { canonical: '/' },
   openGraph: {
@@ -30,7 +33,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#20262B',
+  themeColor: '#0A0A0A',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

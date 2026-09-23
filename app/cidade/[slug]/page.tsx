@@ -83,7 +83,7 @@ export default async function CityPage({ params }: { params: { slug: string } })
           <p className="note" style={{ marginBottom: 16 }}>
             Mapa da cidade em breve — por enquanto, veja o endereço de cada academia no perfil individual.
           </p>
-          <h4 style={{ fontFamily: "'Oswald',sans-serif", textTransform: 'uppercase', fontSize: 15, marginBottom: 10 }}>
+          <h4 style={{ fontFamily: "'Bebas Neue',sans-serif", textTransform: 'uppercase', fontSize: 15, marginBottom: 10 }}>
             Ranking completo de {city.nome}
           </h4>
           <div className="similar-gyms-list">

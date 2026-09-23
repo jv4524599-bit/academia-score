@@ -9,17 +9,17 @@ import premiumGallery from '@/prisma/premium-gallery.json';
 // parceira ganharia, igual ao comportamento original.
 
 const TOUR_PANELS = [
-  { bg: '#20262B', accent: '#A63F27' },
-  { bg: '#232A2E', accent: '#D6A23D' },
-  { bg: '#1F2529', accent: '#4C6B52' },
-  { bg: '#212729', accent: '#A63F27' },
+  { bg: '#0E0E0E', accent: '#C6FF3D' },
+  { bg: '#121212', accent: '#D6A23D' },
+  { bg: '#0B0B0B', accent: '#4C6B52' },
+  { bg: '#131313', accent: '#C6FF3D' },
 ];
 
 function TourPanel({ bg, accent }: { bg: string; accent: string }) {
   return (
     <svg viewBox="0 0 300 220" style={{ height: '100%', flexShrink: 0, display: 'block' }}>
       <rect width="300" height="220" fill={bg} />
-      <rect y="170" width="300" height="50" fill="#2A3238" />
+      <rect y="170" width="300" height="50" fill="#1A1A1A" />
       <rect x="30" y="110" width="14" height="60" fill={accent} />
       <rect x="70" y="90" width="14" height="80" fill={accent} />
       <rect x="220" y="100" width="14" height="70" fill={accent} />
@@ -32,13 +32,13 @@ function TourPanel({ bg, accent }: { bg: string; accent: string }) {
 function VideoThumb() {
   return (
     <svg viewBox="0 0 400 200" style={{ width: '100%', display: 'block' }}>
-      <rect width="400" height="200" fill="#20262B" />
-      <rect x="0" y="140" width="400" height="60" fill="#2A3238" />
-      <rect x="40" y="90" width="18" height="50" fill="#A63F27" />
+      <rect width="400" height="200" fill="#0E0E0E" />
+      <rect x="0" y="140" width="400" height="60" fill="#1A1A1A" />
+      <rect x="40" y="90" width="18" height="50" fill="#C6FF3D" />
       <rect x="70" y="70" width="18" height="70" fill="#D6A23D" />
       <rect x="100" y="100" width="18" height="40" fill="#4C6B52" />
-      <circle cx="300" cy="90" r="22" fill="none" stroke="#D6A23D" strokeWidth="3" />
-      <rect x="270" y="120" width="60" height="10" fill="#3A434A" />
+      <circle cx="300" cy="90" r="22" fill="none" stroke="#C6FF3D" strokeWidth="3" />
+      <rect x="270" y="120" width="60" height="10" fill="#1F1F1F" />
     </svg>
   );
 }

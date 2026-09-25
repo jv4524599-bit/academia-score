@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { getSessionId } from '@/lib/session';
 import HomeApp, { type GymSummary } from '@/components/HomeApp';
 import PremiumDemo from '@/components/PremiumDemo';
+import MovaltBanner from '@/components/MovaltBanner';
 import HowItWorksButton from '@/components/HowItWorksButton';
 import PartnerCtaButton from '@/components/PartnerCtaButton';
 import PartnerForm from '@/components/PartnerForm';
@@ -276,6 +277,7 @@ export default async function HomePage({
             </p>
           </div>
         }
+        promo={<MovaltBanner />}
         premium={<PremiumDemo />}
         recent={
           <div className="recent-reviews section-block">

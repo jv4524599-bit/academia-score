@@ -41,6 +41,7 @@ export default function HomeApp({
   initialCompare,
   top3,
   trust,
+  promo,
   premium,
   recent,
 }: {
@@ -49,6 +50,7 @@ export default function HomeApp({
   initialCompare: string[];
   top3: React.ReactNode;
   trust: React.ReactNode;
+  promo?: React.ReactNode;
   premium: React.ReactNode;
   recent: React.ReactNode;
 }) {
@@ -149,6 +151,7 @@ export default function HomeApp({
       <main>
         {top3}
         {trust}
+        {promo}
 
         <div className="filters section-block">
           <select value={bairro} onChange={(e) => setBairro(e.target.value)}>

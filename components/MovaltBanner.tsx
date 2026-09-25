@@ -1,29 +1,28 @@
 // Banner de divulgação do Movalt Challenge (movaltoficial.com.br) -- outro
-// projeto do dono do Academia Score. Fica com identidade visual própria
-// (preto + laranja), separada da marca do Academia Score, e marcado como
-// "Divulgação" para deixar claro que é conteúdo de outra plataforma.
+// projeto do dono do Academia Score. Usa a peça de divulgação real fornecida
+// pelo Movalt (public/movalt-challenge-banner.jpg), com a etiqueta
+// "Divulgação" sobreposta pra deixar claro que é conteúdo de outra
+// plataforma, separado da marca do Academia Score.
 export default function MovaltBanner() {
   return (
-    <div className="movalt-banner section-block">
+    <div className="movalt-banner-wrap section-block">
       <span className="movalt-banner-label">Divulgação</span>
-      <div className="movalt-banner-text">
-        <div className="movalt-banner-brand">
-          MOV<span>ALT</span> CHALLENGE
-        </div>
-        <h3>
-          50<span className="movalt-km">KM</span> EM 31 DIAS
-        </h3>
-        <p>
-          Corra ou caminhe de qualquer lugar do Brasil. Medalha, número de peito, certificado e frete incluso —
-          edição de outubro 2026.
-        </p>
-      </div>
-      <div className="movalt-banner-cta">
-        <a href="https://www.movaltoficial.com.br/" target="_blank" rel="noopener noreferrer">
-          Inscrições abertas →
-        </a>
-        <span>movaltoficial.com.br</span>
-      </div>
+      <a
+        href="https://www.movaltoficial.com.br/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="movalt-banner-link"
+        aria-label="Movalt Challenge — 50km em 31 dias, corra ou caminhe de qualquer lugar do Brasil. Inscrições abertas em movaltoficial.com.br"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/movalt-challenge-banner.jpg"
+          width={1600}
+          height={900}
+          alt="Movalt Challenge 50km em 31 dias, edição outubro 2026 — corra ou caminhe de qualquer lugar do Brasil. Medalha, chaveiro, número de peito, certificado e frete incluso para todo o Brasil. Inscrições abertas em movaltoficial.com.br"
+          className="movalt-banner-img"
+        />
+      </a>
     </div>
   );
 }

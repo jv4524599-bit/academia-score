@@ -2,6 +2,7 @@
 
 import { db } from '@/lib/db';
 import { createUserSession, destroyUserSession, displayName, hashPassword, verifyPassword } from '@/lib/auth';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { revalidatePath } from 'next/cache';
 
 type AuthResult = { ok: true; displayName: string } | { ok: false; error: string };
@@ -9,6 +10,12 @@ type AuthResult = { ok: true; displayName: string } | { ok: false; error: string
 // Cadastro por e-mail + senha. Só pede nome, e-mail e senha -- nenhum outro
 // dado. A senha nunca é guardada em texto puro (bcrypt).
 export async function registerWithPassword(formData: FormData): Promise<AuthResult> {
+  // Limita criação de contas em massa (spam/abuso) a partir de um mesmo IP.
+  const ip = getClientIp();
+  if (!checkRateLimit(`register:${ip}`, 10, 10 * 60 * 1000)) {
+    return { ok: false, error: 'Muitas tentativas. Aguarde alguns minutos e tente de novo.' };
+  }
+
   const name = String(formData.get('name') || '').trim();
   const email = String(formData.get('email') || '').trim().toLowerCase();
   const password = String(formData.get('password') || '');
@@ -39,6 +46,14 @@ export async function registerWithPassword(formData: FormData): Promise<AuthResu
 }
 
 export async function loginWithPassword(formData: FormData): Promise<AuthResult> {
+  // Limita tentativas de login por IP -- dificulta força bruta de senha
+  // contra contas de usuário (bcrypt.compare já é lento, isso é uma camada
+  // a mais). Ver lib/rate-limit.ts sobre as limitações desse limitador.
+  const ip = getClientIp();
+  if (!checkRateLimit(`login:${ip}`, 10, 10 * 60 * 1000)) {
+    return { ok: false, error: 'Muitas tentativas. Aguarde alguns minutos e tente de novo.' };
+  }
+
   const email = String(formData.get('email') || '').trim().toLowerCase();
   const password = String(formData.get('password') || '');
 

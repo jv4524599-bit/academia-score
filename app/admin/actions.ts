@@ -1,26 +1,51 @@
 'use server';
 
+import crypto from 'crypto';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
-import { ADMIN_COOKIE, isAdminSession } from '@/lib/session';
+import { ADMIN_COOKIE, ADMIN_SESSION_MAX_AGE_SECONDS, createAdminToken, isAdminSession } from '@/lib/session';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
-// Porta checkAdminPassword() do protótipo -- só que a senha (mesma,
-// "patriotasftc", vinda de process.env.ADMIN_PASSWORD) agora é conferida
-// no servidor, nunca exposta no bundle JS do cliente.
+// Comparação em tempo constante: evita que um atacante infira a senha
+// caractere-a-caractere medindo quanto tempo cada tentativa leva (timing
+// attack). Compara hashes de tamanho fixo em vez das strings originais,
+// para não vazar nem o tamanho da senha certa via timingSafeEqual.
+function safeCompare(a: string, b: string): boolean {
+  const ah = crypto.createHash('sha256').update(a).digest();
+  const bh = crypto.createHash('sha256').update(b).digest();
+  return crypto.timingSafeEqual(ah, bh);
+}
+
+// Porta checkAdminPassword() do protótipo -- a senha (vinda de
+// process.env.ADMIN_PASSWORD) é conferida no servidor, nunca exposta no
+// bundle JS do cliente. Limite de tentativas por IP + comparação em tempo
+// constante pra dificultar força bruta (ver lib/rate-limit.ts sobre as
+// limitações desse limitador em memória).
 export async function loginAdmin(formData: FormData): Promise<{ ok: boolean; error?: string }> {
+  const ip = getClientIp();
+  const allowed = checkRateLimit(`admin-login:${ip}`, 5, 10 * 60 * 1000);
+  if (!allowed) {
+    return { ok: false, error: 'Muitas tentativas. Aguarde alguns minutos e tente de novo.' };
+  }
+
   const password = String(formData.get('password') || '');
   const expected = process.env.ADMIN_PASSWORD;
 
-  if (!expected || password !== expected) {
+  if (!expected || !safeCompare(password, expected)) {
     return { ok: false, error: 'Senha incorreta.' };
   }
 
-  cookies().set(ADMIN_COOKIE, 'ok', {
+  const token = createAdminToken();
+  if (!token) {
+    return { ok: false, error: 'Login de admin não configurado no servidor.' };
+  }
+
+  cookies().set(ADMIN_COOKIE, token, {
     httpOnly: true,
     secure: true,
     sameSite: 'lax',
-    maxAge: 60 * 60 * 8, // 8h
+    maxAge: ADMIN_SESSION_MAX_AGE_SECONDS,
     path: '/',
   });
 

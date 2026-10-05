@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -27,8 +28,25 @@ export const revalidate = 60;
 
 const SITE_URL = 'https://academia-score.vercel.app';
 
+// generateMetadata() e o componente da página rodam na mesma requisição, mas
+// cada `await db.gym.findUnique(...)` sem cache disparava DUAS idas ao banco
+// pra buscar a mesma academia -- essa era uma das causas do delay ao clicar
+// em "Ver detalhes" (Next não deduplica chamadas do Prisma automaticamente
+// como faz com fetch()). cache() do React garante que, dentro da mesma
+// requisição, a segunda chamada com o mesmo slug reusa o resultado da
+// primeira em vez de bater no Postgres de novo.
+const getGymBySlug = cache((slug: string) =>
+  db.gym.findUnique({
+    where: { slug },
+    include: {
+      photos: { orderBy: { ordem: 'asc' } },
+      reviews: { where: { status: 'APPROVED' }, orderBy: { createdAt: 'desc' } },
+    },
+  })
+);
+
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const gym = await db.gym.findUnique({ where: { slug: params.slug } });
+  const gym = await getGymBySlug(params.slug);
   if (!gym) return {};
 
   const title = `${gym.name} — Avaliações, preço e horários | Academia Score`;
@@ -65,21 +83,28 @@ export default async function GymPage({
   searchParams: { avaliar?: string };
 }) {
   const sessionId = getSessionId();
-  const currentUser = await getCurrentUser();
 
-  const gym: any = await db.gym.findUnique({
-    where: { slug: params.slug },
-    include: {
-      photos: { orderBy: { ordem: 'asc' } },
-      reviews: { where: { status: 'APPROVED' }, orderBy: { createdAt: 'desc' } },
-    },
-  });
+  // As duas linhas abaixo não dependem uma da outra (usuário logado x
+  // academia pelo slug), mas antes eram dois "await" em sequência -- cada
+  // um esperando a resposta do banco antes de disparar o próximo. Rodar em
+  // paralelo com Promise.all corta esse tempo praticamente à metade.
+  const [gym, currentUser]: [any, Awaited<ReturnType<typeof getCurrentUser>>] = await Promise.all([
+    getGymBySlug(params.slug),
+    getCurrentUser(),
+  ]);
 
   if (!gym) notFound();
 
-  const isFavorite = sessionId
-    ? !!(await db.favorite.findUnique({ where: { gymId_sessionId: { gymId: gym.id, sessionId } } }))
-    : false;
+  // Mesma ideia aqui: "é favorita?" e "academias parecidas" só dependem da
+  // academia que já temos, não uma da outra -- então também rodam em paralelo.
+  const [isFavoriteRaw, others]: [any, any[]] = await Promise.all([
+    sessionId ? db.favorite.findUnique({ where: { gymId_sessionId: { gymId: gym.id, sessionId } } }) : null,
+    db.gym.findMany({
+      where: { cityId: gym.cityId, id: { not: gym.id } },
+      include: { reviews: { where: { status: 'APPROVED' } } },
+    }),
+  ]);
+  const isFavorite = !!isFavoriteRaw;
 
   const reviewNotasList = (gym.reviews as any[]).map((r) => r.notas as unknown as Record<string, number>);
   const rating = avgRatingFromNotas(reviewNotasList);
@@ -87,10 +112,6 @@ export default async function GymPage({
 
   // "Compare com academias semelhantes" -- academias mais próximas (ou do
   // mesmo bairro se não houver coordenadas), igual a similarGyms() do protótipo.
-  const others: any[] = await db.gym.findMany({
-    where: { cityId: gym.cityId, id: { not: gym.id } },
-    include: { reviews: { where: { status: 'APPROVED' } } },
-  });
   const hasCurrentCoords = gym.lat != null && gym.lng != null;
   let picked: any[];
   if (hasCurrentCoords) {

@@ -3,11 +3,12 @@ import { Analytics } from '@vercel/analytics/next';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import './globals.css';
 
-// Measurement ID da propriedade GA4 "academia score site" (analytics.google.com).
-// Fica hardcoded (não é segredo -- é um valor público, visível em texto puro no
-// JS de qualquer site que usa GA) em vez de variável de ambiente, para não
-// depender de configurar mais uma env var na Vercel.
-const GA_MEASUREMENT_ID = 'G-VFT1QENSP2';
+// Measurement ID da propriedade GA4 dedicada "Academia Score" (separada da
+// propriedade "movalt") em analytics.google.com. Fica hardcoded (não é
+// segredo -- é um valor público, visível em texto puro no JS de qualquer
+// site que usa GA) em vez de variável de ambiente, para não depender de
+// configurar mais uma env var na Vercel.
+const GA_MEASUREMENT_ID = 'G-YG5S1XCWM4';
 
 const SITE_URL = 'https://academia-score.vercel.app';
 const TITLE = 'Academia Score — Valparaíso de Goiás';

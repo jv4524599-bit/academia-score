@@ -94,7 +94,8 @@ export default function ReviewForm({ gymId, gymSlug }: { gymId: string; gymSlug:
           fontFamily: "'Manrope',sans-serif",
           fontSize: 14,
           marginBottom: 8,
-          background: '#fff',
+          background: '#0E0C09',
+          color: 'var(--ink)',
         }}
       >
         <option value="SIM">Sim, sou aluno(a) atualmente</option>

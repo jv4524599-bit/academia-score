@@ -1,27 +1,30 @@
 import type { Config } from 'tailwindcss';
 
-// Identidade "Preto + Verde Neon" -- espelha as variáveis CSS de
+// Identidade "Preto + Amarelo" -- espelha as variáveis CSS de
 // app/globals.css (:root). Mudar aqui e lá juntos ao ajustar a marca.
+// (Nenhum componente usa essas classes utilitárias do Tailwind hoje --
+// toda a estilização real vem das classes manuais em globals.css -- mas
+// os valores ficam espelhados aqui pra não desalinhar se isso mudar.)
 const config: Config = {
   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        paper: '#F4F4F1',
-        'paper-2': '#E8E8E3',
-        ink: '#0A0A0A',
-        'ink-soft': '#64645D',
-        clay: '#2F6A00',
-        'clay-dark': '#1F4A00',
-        neon: '#C6FF3D',
-        'neon-dark': '#A6E600',
-        gold: '#D6A23D',
-        sage: '#4C6B52',
-        'sage-bg': '#DDE5D9',
-        warn: '#9B3A34',
-        'warn-bg': '#E9D9D6',
-        line: '#DBDBD5',
-        card: '#FFFFFF',
+        paper: '#0A0A0A',
+        'paper-2': '#17140E',
+        ink: '#F4F4F1',
+        'ink-soft': '#ACA89D',
+        clay: '#FFD400',
+        'clay-dark': '#E0B600',
+        neon: '#FFD400',
+        'neon-dark': '#E0B600',
+        gold: '#F0C147',
+        sage: '#6FDB8E',
+        'sage-bg': '#1E3626',
+        warn: '#F08A8A',
+        'warn-bg': '#3A2420',
+        line: '#2E2A1E',
+        card: '#141210',
       },
       fontFamily: {
         display: ['Bebas Neue', 'sans-serif'],

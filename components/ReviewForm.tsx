@@ -42,7 +42,14 @@ export default function ReviewForm({ gymId, gymSlug }: { gymId: string; gymSlug:
         await submitReview(gymId, gymSlug, formData);
         setSent(true);
       } catch (err) {
-        setError('Não foi possível salvar agora. Tente novamente.');
+        // submitReview lança mensagens específicas e já em português,
+        // pensadas pra aparecer pro usuário (ex.: "Você já avaliou esta
+        // academia.", "Muitas tentativas..."). Antes isso era descartado e
+        // sempre mostrava um genérico "tente novamente" -- péssimo quando o
+        // motivo real é algo que tentar de novo nunca vai resolver (como já
+        // ter avaliado), fazendo o usuário achar que o site está quebrado.
+        const msg = err instanceof Error ? err.message : '';
+        setError(msg && msg.length < 200 ? msg : 'Não foi possível salvar agora. Tente novamente.');
       }
     });
   }

@@ -1,0 +1,419 @@
+From bc992bb72800cf3fc797c0f8d01a386f6680227e Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 6 Oct 2026 01:36:59 +0000
+Subject: [PATCH] Nova identidade visual: preto + amarelo forte
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Substitui a identidade "Preto + Verde Neon" por "Preto + Amarelo" em
+todo o site (header, listagem, Top 3, confiança, avaliações, modais,
+comparativo, perfil Premium, rodapé/formulário de parceiro).
+
+- app/globals.css: --paper (fundo) e --ink (texto) trocam de papel --
+  --paper agora é o preto de fundo do site inteiro e --ink o texto
+  claro padrão sobre esse fundo. Nova variável --black para faixas que
+  devem continuar pretas independente da troca (header, rodapé, barra
+  de comparar, tabelas). Nova variável --on-accent para texto escuro
+  sobre botões/selos no amarelo de destaque. --neon/--clay viram o
+  amarelo forte (#FFD400); --gold fica um dourado mais quente, separado,
+  para estrelas e selo Premium. Badges, cartões, inputs, skeleton e
+  sombras ajustados para o tema escuro. .row-logo e .mural-note mantêm
+  fundo claro de propósito (logos/post-its pensados pra fundo claro) com
+  texto escurado fixo nesses dois pontos.
+- tailwind.config.ts: mesmos valores espelhados (não usado por nenhum
+  componente hoje, mas mantido em sincronia).
+
+Validado com `next build` (compila sem erro) e `tsc --noEmit`.
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01QXD9UfPFr37kSUktHok4yQ
+---
+ app/globals.css    | 128 +++++++++++++++++++++++++--------------------
+ tailwind.config.ts |  35 +++++++------
+ 2 files changed, 89 insertions(+), 74 deletions(-)
+
+diff --git a/app/globals.css b/app/globals.css
+index 6c87696..29931da 100644
+--- a/app/globals.css
++++ b/app/globals.css
+@@ -15,27 +15,33 @@ body {
+    Mesmos nomes de classe, para preservar o visual 1:1.
+    ============================================================ */
+   :root{
+-    /* Academia Score — identidade "Preto + Verde Neon" */
+-    --paper: #F4F4F1;
+-    --paper-2: #E8E8E3;
+-    --ink: #0A0A0A;
+-    --ink-soft: #64645D;
+-    --clay: #2F6A00;       /* verde legível — texto/bordas/números sobre fundo claro */
+-    --clay-dark: #1F4A00;
+-    --neon: #C6FF3D;       /* verde neon puro — só sobre preto, ou como fundo com texto preto */
+-    --neon-dark: #A6E600;
+-    --gold: #D6A23D;       /* mantido só para avaliações (estrelas) e selo Premium */
+-    --sage: #4C6B52;
+-    --sage-bg: #DDE5D9;
+-    --warn: #9B3A34;
+-    --warn-bg: #E9D9D6;
+-    --confirm-bg: #E8E8E3;
+-    --line: #DBDBD5;
+-    --card-bg: #FFFFFF;
++    /* Academia Score — identidade "Preto + Amarelo" (substitui o antigo "Preto + Verde Neon").
++       --ink e --paper trocaram de papel: --paper agora é o preto de fundo do site inteiro,
++       --ink agora é o texto claro padrão sobre esse fundo. Como várias faixas do site
++       (header, rodapé, barra de comparar, etc.) precisam continuar pretas mesmo depois
++       dessa troca, essas faixas passaram a usar a nova variável --black em vez de --ink. */
++    --paper: #0A0A0A;
++    --paper-2: #17140E;
++    --ink: #F4F4F1;
++    --ink-soft: #ACA89D;
++    --black: #0A0A0A;      /* preto fixo, para faixas que devem ficar pretas independente do tema */
++    --on-accent: #0A0A0A;  /* texto escuro usado sobre fundos de destaque (amarelo/dourado) */
++    --clay: #FFD400;       /* era verde #2F6A00 -- agora o amarelo forte, acento de marca */
++    --clay-dark: #E0B600;
++    --neon: #FFD400;       /* era verde neon #C6FF3D -- agora o mesmo amarelo forte */
++    --neon-dark: #E0B600;
++    --gold: #F0C147;       /* era #D6A23D -- amarelo/dourado mais quente, para estrelas e selo Premium */
++    --sage: #6FDB8E;       /* verde claro legível sobre fundo escuro (badges "sim", etc.) */
++    --sage-bg: rgba(94,209,120,0.16);
++    --warn: #F08A8A;       /* vermelho claro legível sobre fundo escuro (badges "não") */
++    --warn-bg: rgba(224,92,92,0.16);
++    --confirm-bg: #1C1A14;
++    --line: #2E2A1E;
++    --card-bg: #141210;
+     --radius: 6px;
+-    --shadow-sm: 0 1px 3px rgba(10,10,10,0.06);
+-    --shadow-md: 0 4px 12px rgba(10,10,10,0.09);
+-    --shadow-lg: 0 8px 22px rgba(10,10,10,0.14);
++    --shadow-sm: 0 1px 3px rgba(0,0,0,0.45);
++    --shadow-md: 0 4px 12px rgba(0,0,0,0.5);
++    --shadow-lg: 0 8px 22px rgba(0,0,0,0.6);
+   }
+   *{box-sizing:border-box;}
+   body{margin:0;background:var(--paper);color:var(--ink);font-family:'Manrope',sans-serif;line-height:1.5;}
+@@ -44,15 +50,15 @@ body {
+ 
+   /* ---------- Header ---------- */
+   header{
+-    background:var(--ink);
+-    color:var(--paper);
++    background:var(--black);
++    color:var(--ink);
+     padding:36px 24px 28px;
+     position:relative;
+     border-bottom:6px solid var(--neon);
+   }
+   .header-inner{max-width:1080px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;}
+   .hero-buttons{display:flex;flex-direction:column;gap:8px;}
+-  .partner-cta-hero{background:var(--neon);color:var(--ink);border:none;}
++  .partner-cta-hero{background:var(--neon);color:var(--on-accent);border:none;}
+   .partner-cta-hero:hover{background:var(--neon-dark);}
+   .main-nav{max-width:1080px;margin:0 auto 14px;display:flex;gap:18px;flex-wrap:wrap;}
+   .main-nav a{color:#A8A8A2;text-decoration:none;font-size:13px;font-family:'Manrope',sans-serif;font-weight:600;transition:color 0.15s ease;}
+@@ -62,7 +68,7 @@ body {
+   header .tagline{font-family:'Bebas Neue',sans-serif;text-transform:none;color:var(--neon);font-size:16px;margin:8px 0 0;letter-spacing:0.02em;}
+   header p.sub{color:#A8A8A2;margin:10px 0 0;max-width:520px;font-size:14.5px;}
+   .btn-add{
+-    background:var(--neon);color:var(--ink);border:none;padding:12px 18px;border-radius:var(--radius);
++    background:var(--neon);color:var(--on-accent);border:none;padding:12px 18px;border-radius:var(--radius);
+     font-family:'Bebas Neue',sans-serif;text-transform:uppercase;letter-spacing:0.04em;font-size:14px;
+     cursor:pointer;white-space:nowrap;
+   }
+@@ -78,7 +84,7 @@ body {
+   }
+   .filters input[type=text], .filters select{
+     font-family:'Manrope',sans-serif;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);
+-    background:#fff;font-size:14px;color:var(--ink);
++    background:#0E0C09;font-size:14px;color:var(--ink);
+   }
+   .filters label{font-size:13px;color:var(--ink-soft);display:flex;gap:6px;align-items:center;cursor:pointer;user-select:none;}
+   .filters .grow{flex:1;min-width:180px;}
+@@ -98,20 +104,21 @@ body {
+   .hero-stat-icon{font-size:16px;display:block;margin-bottom:4px;}
+   .hero-stat-num{font-family:'Bebas Neue',sans-serif;font-size:21px;color:var(--neon);display:block;line-height:1.1;}
+   .hero-stat-label{font-size:11px;color:#9A9A94;letter-spacing:0.01em;}
+-  .demo-tag{font-style:italic;color:#D6A23D;font-size:10.5px;}
++  .demo-tag{font-style:italic;color:var(--gold);font-size:10.5px;}
+ 
+   /* ---------- Hero search ---------- */
+   .hero-search{background:#111311;padding:28px 24px 34px;}
+   .hero-search-inner{max-width:640px;margin:0 auto;text-align:center;}
+   .hero-search-inner h2{color:#fff;font-family:'Bebas Neue',sans-serif;text-transform:uppercase;font-size:24px;margin:0 0 14px;letter-spacing:0.02em;}
+   .hero-search-box{
+-    background:#fff;border-radius:30px;display:flex;align-items:center;gap:10px;
+-    padding:12px 20px;box-shadow:0 4px 12px rgba(0,0,0,0.18);
++    background:#17140E;border:1px solid rgba(255,212,0,0.3);border-radius:30px;display:flex;align-items:center;gap:10px;
++    padding:12px 20px;box-shadow:0 4px 12px rgba(0,0,0,0.3);
+   }
+   .hero-search-box .search-icon{font-size:18px;}
+   .hero-search-box input{
+     border:none;outline:none;flex:1;font-family:'Manrope',sans-serif;font-size:15px;color:var(--ink);background:transparent;
+   }
++  .hero-search-box input::placeholder{color:var(--ink-soft);}
+ 
+   /* ---------- Top 3 ---------- */
+   .top3-title{font-family:'Bebas Neue',sans-serif;text-transform:uppercase;font-size:18px;letter-spacing:0.03em;margin:0 0 14px;}
+@@ -159,14 +166,14 @@ body {
+     padding:16px 18px;margin-bottom:12px;
+   }
+   .skeleton-block{
+-    background:linear-gradient(90deg, var(--paper-2) 25%, #F7F7F4 37%, var(--paper-2) 63%);
++    background:linear-gradient(90deg, var(--paper-2) 25%, #2A2518 37%, var(--paper-2) 63%);
+     background-size:400% 100%;animation:skeleton-shimmer 1.4s ease infinite;border-radius:var(--radius);
+   }
+   @keyframes skeleton-shimmer{0%{background-position:100% 50%;}100%{background-position:0 50%;}}
+ 
+   /* ---------- General UX polish ---------- */
+   .row{transition:box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease; box-shadow:var(--shadow-sm);}
+-  .row:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);border-color:#C4C4BE;}
++  .row:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);border-color:#4A4432;}
+   .btn-sm, .btn-add, .premium-cta-big{transition:transform 0.12s ease, background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;}
+   .btn-sm:active, .btn-add:active, .premium-cta-big:active{transform:scale(0.96);}
+   .btn-sm:hover{box-shadow:var(--shadow-sm);}
+@@ -191,7 +198,7 @@ body {
+   }
+   .review-form input:focus, .review-form textarea:focus, .form-grid input:focus,
+   .form-grid select:focus, .form-grid textarea:focus, .filters input:focus, .filters select:focus{
+-    outline:none;border-color:var(--neon-dark);box-shadow:0 0 0 3px rgba(198,255,61,0.25);
++    outline:none;border-color:var(--neon-dark);box-shadow:0 0 0 3px rgba(255,212,0,0.25);
+   }
+   .star-picker span{transition:color 0.1s ease, transform 0.1s ease;}
+   .star-picker span:hover{transform:scale(1.15);}
+@@ -225,11 +232,14 @@ body {
+     padding:18px 20px;margin-bottom:14px;
+   }
+   .row-logo{
++    /* Mantido branco de propósito mesmo no tema escuro: a maioria dos logos das academias
++       é PNG com fundo transparente pensado pra assentar sobre fundo claro -- em preto,
++       vários ficariam ilegíveis. O "chip" branco funciona como moldura neutra. */
+     width:68px;height:68px;border-radius:8px;overflow:hidden;background:#fff;border:1px solid var(--line);
+     display:flex;align-items:center;justify-content:center;flex-shrink:0;
+   }
+   .row-logo img{width:100%;height:100%;object-fit:cover;display:block;}
+-  .row-logo.empty{color:var(--ink-soft);font-family:'Bebas Neue',sans-serif;font-size:20px;}
++  .row-logo.empty{color:#8A857A;font-family:'Bebas Neue',sans-serif;font-size:20px;} /* chip continua branco -- texto escuro fixo */
+   .rank-num{
+     font-family:'Bebas Neue',sans-serif;font-weight:700;font-size:34px;color:var(--clay);text-align:center;line-height:1;
+   }
+@@ -247,7 +257,7 @@ body {
+     border-radius:var(--radius);display:inline-block;margin-top:6px;
+   }
+   .plan-promo{
+-    background:#FBF6E9;color:var(--clay);font-weight:600;font-size:12.5px;padding:4px 10px;
++    background:rgba(240,193,71,0.1);color:var(--clay);font-weight:600;font-size:12.5px;padding:4px 10px;
+     border-radius:var(--radius);display:inline-block;margin-top:4px;border:1px solid var(--gold);
+   }
+   .name-stars{
+@@ -267,11 +277,11 @@ body {
+     border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;
+   }
+   .btn-sm:hover{background:var(--ink);color:var(--paper);}
+-  .btn-sm.selected{background:var(--clay);border-color:var(--clay);color:#fff;}
++  .btn-sm.selected{background:var(--clay);border-color:var(--clay);color:var(--on-accent);}
+ 
+   /* ---------- Compare bar ---------- */
+   .compare-bar{
+-    position:fixed;bottom:0;left:0;right:0;background:var(--ink);color:#fff;padding:14px 24px;
++    position:fixed;bottom:0;left:0;right:0;background:var(--black);color:#fff;padding:14px 24px;
+     display:none;justify-content:center;align-items:center;gap:16px;z-index:20;border-top:4px solid var(--neon);
+   }
+   .compare-bar.show{display:flex;}
+@@ -279,13 +289,13 @@ body {
+ 
+   /* ---------- Modal ---------- */
+   .overlay{
+-    position:fixed;inset:0;background:rgba(10,10,10,0.6);display:none;align-items:center;justify-content:center;
++    position:fixed;inset:0;background:rgba(0,0,0,0.75);display:none;align-items:center;justify-content:center;
+     z-index:30;padding:20px;
+   }
+   .overlay.show{display:flex;}
+   .modal{
+-    background:#fff;max-width:640px;width:100%;max-height:88vh;overflow-y:auto;border-radius:var(--radius);
+-    border-top:5px solid var(--neon);
++    background:var(--card-bg);max-width:640px;width:100%;max-height:88vh;overflow-y:auto;border-radius:var(--radius);
++    border:1px solid var(--line);border-top:5px solid var(--neon);
+   }
+   .modal-head{padding:20px 24px 12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;align-items:flex-start;}
+   .modal-head h2{margin:0 0 4px;font-size:22px;}
+@@ -305,10 +315,10 @@ body {
+   .review-form{margin-top:14px;background:var(--paper);padding:14px;border-radius:var(--radius);border:1px solid var(--line);}
+   .review-form input, .review-form textarea{
+     width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);font-family:'Manrope',sans-serif;
+-    font-size:14px;margin-bottom:8px;background:#fff;
++    font-size:14px;margin-bottom:8px;background:#0E0C09;color:var(--ink);
+   }
+   .star-picker{display:flex;gap:4px;margin-bottom:10px;}
+-  .star-picker span{font-size:22px;cursor:pointer;color:var(--line);}
++  .star-picker span{font-size:22px;cursor:pointer;color:var(--ink-soft);}
+   .star-picker span.on{color:var(--gold);}
+   .cat-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+   .cat-row .star-picker{margin-bottom:0;}
+@@ -359,7 +369,7 @@ body {
+   .similar-gym-row strong{font-size:14px;}
+   .similar-gym-meta{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+   .review-form button, .partner-form button, .compare-bar button{
+-    background:var(--neon);color:var(--ink);border:none;padding:9px 16px;border-radius:var(--radius);cursor:pointer;
++    background:var(--neon);color:var(--on-accent);border:none;padding:9px 16px;border-radius:var(--radius);cursor:pointer;
+     font-family:'Bebas Neue',sans-serif;text-transform:uppercase;font-size:13px;letter-spacing:0.03em;
+     transition:transform 0.12s ease, background 0.15s ease, box-shadow 0.15s ease;
+   }
+@@ -369,28 +379,28 @@ body {
+   .field-row{display:flex;gap:8px;}
+   .field-row > *{flex:1;}
+   .form-grid label{display:block;font-size:12.5px;color:var(--ink-soft);margin-bottom:3px;margin-top:10px;font-weight:600;}
+-  .form-grid select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;font-family:'Manrope',sans-serif;}
++  .form-grid select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);background:#0E0C09;color:var(--ink);font-family:'Manrope',sans-serif;}
+   .note{font-size:12px;color:var(--ink-soft);margin-top:14px;font-style:italic;}
+ 
+   /* ---------- Partner footer ---------- */
+-  .partner-footer{background:var(--ink);color:var(--paper);padding:36px 24px 48px;margin-top:20px;}
++  .partner-footer{background:var(--black);color:var(--ink);padding:36px 24px 48px;margin-top:20px;}
+   /* ---------- Premium demo profile ---------- */
+   .premium-card{
+-    border:2px solid var(--gold);background:linear-gradient(135deg,#FBF6E9,var(--card-bg));
++    border:2px solid var(--gold);background:linear-gradient(135deg,rgba(240,193,71,0.1),var(--card-bg));
+     border-radius:var(--radius);padding:18px 20px;margin-bottom:22px;cursor:pointer;
+     display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
+     box-shadow:0 2px 0 var(--gold), var(--shadow-sm);
+   }
+-  .premium-card:hover{background:linear-gradient(135deg,#FBF6E9,#F3EFE4);box-shadow:0 2px 0 var(--gold), var(--shadow-md);}
++  .premium-card:hover{background:linear-gradient(135deg,rgba(240,193,71,0.16),#1A170F);box-shadow:0 2px 0 var(--gold), var(--shadow-md);}
+   .premium-badge{
+-    display:inline-block;background:var(--gold);color:var(--ink);font-weight:700;font-size:12px;
++    display:inline-block;background:var(--gold);color:var(--on-accent);font-weight:700;font-size:12px;
+     padding:3px 10px;border-radius:12px;font-family:'Manrope',sans-serif;margin-bottom:6px;
+   }
+   .premium-card h3{margin:0 0 2px;font-size:19px;}
+   .premium-card .sub{font-size:13.5px;color:var(--ink-soft);margin:0;}
+   .premium-modal .modal{max-width:720px;border-top:5px solid var(--gold);}
+   .premium-intro-banner{
+-    background:linear-gradient(135deg,#171717,var(--ink));border:1px solid var(--gold);border-radius:var(--radius);
++    background:linear-gradient(135deg,#171717,var(--black));border:1px solid var(--gold);border-radius:var(--radius);
+     padding:18px 20px;text-align:center;margin-bottom:22px;
+   }
+   .premium-intro-banner p{color:#E9DFC8;font-size:13.5px;line-height:1.6;margin:0 0 14px;}
+@@ -437,8 +447,8 @@ body {
+   }
+   .premium-social-row{display:flex;gap:10px;flex-wrap:wrap;}
+   .premium-social-chip{
+-    background:var(--ink);color:#fff;padding:6px 14px 6px 6px;border-radius:20px;font-size:13px;font-weight:600;
+-    display:inline-flex;align-items:center;gap:8px;
++    background:var(--black);color:#fff;padding:6px 14px 6px 6px;border-radius:20px;font-size:13px;font-weight:600;
++    display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);
+   }
+   .social-icon-circle{
+     width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+@@ -451,7 +461,7 @@ body {
+   .social-icon-circle.gmaps{background:#4285F4;font-size:13px;}
+   .social-icon-circle.waze{background:#33CCFF;color:#1a1a1a;}
+   table.premium-plans{width:100%;border-collapse:collapse;font-size:13.5px;}
+-  table.premium-plans th{background:var(--ink);color:#fff;padding:8px 10px;font-family:'Bebas Neue',sans-serif;text-transform:uppercase;font-size:12px;}
++  table.premium-plans th{background:var(--black);color:#fff;padding:8px 10px;font-family:'Bebas Neue',sans-serif;text-transform:uppercase;font-size:12px;}
+   table.premium-plans td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:center;}
+   table.premium-plans tr:nth-child(even) td{background:var(--paper);}
+   .premium-schedule-list{list-style:none;padding:0;margin:0;font-size:14px;}
+@@ -494,10 +504,12 @@ body {
+   .mural-note.highlight{background:#FFF9F2;}
+   .mural-note.highlight::before{background:radial-gradient(circle at 35% 30%, #ffd76b, #d6a23d 70%);}
+   .mural-note:nth-child(3)::before{background:radial-gradient(circle at 35% 30%, #7fd490, #4C6B52 70%);}
+-  .mural-date{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);display:block;margin-bottom:4px;}
+-  .mural-note p{margin:0;font-size:13.5px;color:var(--ink);line-height:1.5;}
++  /* .mural-note mantém fundo claro (papelzinho de post-it) de propósito, independente do
++     tema do resto do site -- por isso o texto aqui é escuro fixo, não var(--ink). */
++  .mural-date{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8A7A5A;display:block;margin-bottom:4px;}
++  .mural-note p{margin:0;font-size:13.5px;color:#2A2420;line-height:1.5;}
+   .premium-cta-big{
+-    display:block;width:100%;background:var(--gold);color:var(--ink);border:none;padding:14px;border-radius:var(--radius);
++    display:block;width:100%;background:var(--gold);color:var(--on-accent);border:none;padding:14px;border-radius:var(--radius);
+     font-family:'Bebas Neue',sans-serif;text-transform:uppercase;font-size:15px;letter-spacing:0.03em;cursor:pointer;text-align:center;
+   }
+   .premium-review-example{background:var(--paper);border-radius:var(--radius);padding:12px;margin-bottom:10px;font-size:13.5px;}
+@@ -506,15 +518,15 @@ body {
+   .premium-stat-box{background:var(--paper);border-radius:var(--radius);padding:10px 12px;text-align:center;}
+   .premium-stat-box .num{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700;color:var(--clay);display:block;}
+   .premium-stat-box .label{font-size:11.5px;color:var(--ink-soft);}
+-  .premium-insight-box{background:#FBF6E9;border:1px solid var(--gold);border-radius:var(--radius);padding:12px;font-size:13.5px;font-style:italic;}
++  .premium-insight-box{background:rgba(240,193,71,0.08);border:1px solid var(--gold);border-radius:var(--radius);padding:12px;font-size:13.5px;font-style:italic;}
+   .premium-benefits-list{list-style:none;padding:0;margin:0;columns:2;font-size:13.5px;}
+   .premium-benefits-list li{margin-bottom:6px;break-inside:avoid;}
+   table.premium-compare{width:100%;border-collapse:collapse;font-size:13px;}
+   table.premium-compare th{padding:8px;font-family:'Bebas Neue',sans-serif;text-transform:uppercase;font-size:12px;}
+   table.premium-compare th.free{background:var(--paper-2);}
+-  table.premium-compare th.paid{background:var(--gold);}
++  table.premium-compare th.paid{background:var(--gold);color:var(--on-accent);}
+   table.premium-compare td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:center;}
+-  .premium-convert{background:var(--ink);color:#fff;border-radius:var(--radius);padding:24px;text-align:center;margin-top:10px;}
++  .premium-convert{background:var(--black);color:#fff;border-radius:var(--radius);padding:24px;text-align:center;margin-top:10px;}
+   .premium-convert h4{color:var(--gold);font-size:20px;margin:0 0 8px;}
+   .premium-convert p{color:#A8A8A2;font-size:13.5px;margin:0 0 16px;}
+   .partner-inner{max-width:1080px;margin:0 auto;display:flex;gap:32px;flex-wrap:wrap;}
+@@ -530,13 +542,13 @@ body {
+   .partner-form h4{margin:0 0 10px;font-family:'Bebas Neue',sans-serif;text-transform:uppercase;font-size:13px;color:var(--gold);}
+   .partner-form input, .partner-form textarea{
+     width:100%;padding:8px 10px;border:1px solid #3A434A;border-radius:var(--radius);font-family:'Manrope',sans-serif;
+-    font-size:14px;margin-bottom:8px;background:#0F0F0F;color:var(--paper);
++    font-size:14px;margin-bottom:8px;background:#0F0F0F;color:var(--ink);
+   }
+   /* ---------- Compare table ---------- */
+   table.compare{width:100%;border-collapse:collapse;font-size:13.5px;}
+   table.compare th, table.compare td{border:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top;}
+   table.compare th.label{background:var(--paper);width:120px;font-family:'Bebas Neue',sans-serif;text-transform:uppercase;font-size:11.5px;letter-spacing:0.03em;color:var(--ink-soft);}
+-  table.compare th.gname{font-family:'Bebas Neue',sans-serif;text-transform:uppercase;font-size:14px;background:var(--ink);color:#fff;}
++  table.compare th.gname{font-family:'Bebas Neue',sans-serif;text-transform:uppercase;font-size:14px;background:var(--black);color:#fff;}
+   .compare-winner{background:var(--sage-bg);}
+   .winner-badge{display:block;font-size:10px;color:var(--sage);font-weight:700;margin-top:2px;}
+ 
+diff --git a/tailwind.config.ts b/tailwind.config.ts
+index b7bf6d3..3e92c38 100644
+--- a/tailwind.config.ts
++++ b/tailwind.config.ts
+@@ -1,27 +1,30 @@
+ import type { Config } from 'tailwindcss';
+ 
+-// Identidade "Preto + Verde Neon" -- espelha as variáveis CSS de
++// Identidade "Preto + Amarelo" -- espelha as variáveis CSS de
+ // app/globals.css (:root). Mudar aqui e lá juntos ao ajustar a marca.
++// (Nenhum componente usa essas classes utilitárias do Tailwind hoje --
++// toda a estilização real vem das classes manuais em globals.css -- mas
++// os valores ficam espelhados aqui pra não desalinhar se isso mudar.)
+ const config: Config = {
+   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
+   theme: {
+     extend: {
+       colors: {
+-        paper: '#F4F4F1',
+-        'paper-2': '#E8E8E3',
+-        ink: '#0A0A0A',
+-        'ink-soft': '#64645D',
+-        clay: '#2F6A00',
+-        'clay-dark': '#1F4A00',
+-        neon: '#C6FF3D',
+-        'neon-dark': '#A6E600',
+-        gold: '#D6A23D',
+-        sage: '#4C6B52',
+-        'sage-bg': '#DDE5D9',
+-        warn: '#9B3A34',
+-        'warn-bg': '#E9D9D6',
+-        line: '#DBDBD5',
+-        card: '#FFFFFF',
++        paper: '#0A0A0A',
++        'paper-2': '#17140E',
++        ink: '#F4F4F1',
++        'ink-soft': '#ACA89D',
++        clay: '#FFD400',
++        'clay-dark': '#E0B600',
++        neon: '#FFD400',
++        'neon-dark': '#E0B600',
++        gold: '#F0C147',
++        sage: '#6FDB8E',
++        'sage-bg': '#1E3626',
++        warn: '#F08A8A',
++        'warn-bg': '#3A2420',
++        line: '#2E2A1E',
++        card: '#141210',
+       },
+       fontFamily: {
+         display: ['Bebas Neue', 'sans-serif'],
+-- 
+2.43.0
+

@@ -33,10 +33,24 @@ function sanitizeNotas(raw: unknown): Record<string, number> {
 // de verdade no banco em vez de window.storage. Exige login: o nome exibido
 // vem sempre da conta autenticada, nunca de texto digitado pelo usuário
 // (evita nome falso e mantém "Nome I." consistente em todo o site).
-export async function submitReview(gymId: string, gymSlug: string, formData: FormData) {
+//
+// Devolve { ok, error? } em vez de lançar erro para os casos esperados
+// (não logado, rate limit, validação, já avaliou). Em produção o Next.js
+// troca a mensagem de um erro lançado numa Server Action por um texto
+// genérico antes de entregar ao cliente -- então o usuário nunca via o
+// motivo real (ex.: "Você já avaliou esta academia"), só um "tente
+// novamente" sem explicação nenhuma, e ficava tentando de novo pra sempre
+// sem saber que a avaliação anterior já tinha sido salva com sucesso.
+// Devolver como valor normal passa pelo caminho de serialização comum do
+// React, sem passar pela sanitização de erro -- a mensagem chega inteira.
+export async function submitReview(
+  gymId: string,
+  gymSlug: string,
+  formData: FormData
+): Promise<{ ok: boolean; error?: string }> {
   const user = await getCurrentUser();
   if (!user) {
-    throw new Error('Você precisa estar logado para avaliar.');
+    return { ok: false, error: 'Você precisa estar logado para avaliar.' };
   }
 
   // Já existe um limite de "uma avaliação por usuário por academia" abaixo,
@@ -44,7 +58,7 @@ export async function submitReview(gymId: string, gymSlug: string, formData: For
   // de tentativas (ex.: script tentando IDs de academia em sequência).
   const ip = getClientIp();
   if (!checkRateLimit(`review:${user.id}:${ip}`, 20, 10 * 60 * 1000)) {
-    throw new Error('Muitas tentativas. Aguarde alguns minutos e tente de novo.');
+    return { ok: false, error: 'Muitas tentativas. Aguarde alguns minutos e tente de novo.' };
   }
 
   const autor = displayName(user.name);
@@ -61,10 +75,10 @@ export async function submitReview(gymId: string, gymSlug: string, formData: For
   const notas = sanitizeNotas(notasParsed);
 
   if (Object.keys(notas).length === 0) {
-    throw new Error('Avalie ao menos uma categoria de 1 a 5 estrelas.');
+    return { ok: false, error: 'Avalie ao menos uma categoria de 1 a 5 estrelas.' };
   }
   if (!comentario) {
-    throw new Error('Escreva um comentário curto sobre sua experiência.');
+    return { ok: false, error: 'Escreva um comentário curto sobre sua experiência.' };
   }
   if (comentario.length > COMENTARIO_MAX_LENGTH) {
     comentario = comentario.slice(0, COMENTARIO_MAX_LENGTH);
@@ -76,7 +90,7 @@ export async function submitReview(gymId: string, gymSlug: string, formData: For
   // suficiente pra evitar duplicidade, sem precisar de contato extra.
   const already = await db.review.findFirst({ where: { gymId, userId: user.id } });
   if (already) {
-    throw new Error('Você já avaliou esta academia.');
+    return { ok: false, error: 'Você já avaliou esta academia.' };
   }
 
   await db.review.create({
@@ -93,6 +107,7 @@ export async function submitReview(gymId: string, gymSlug: string, formData: For
 
   revalidatePath(`/academia/${gymSlug}`);
   revalidatePath('/');
+  return { ok: true };
 }
 
 // Porta reportReview() -- marca uma avaliação como denunciada (soma no

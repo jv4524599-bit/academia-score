@@ -39,17 +39,24 @@ export default function ReviewForm({ gymId, gymSlug }: { gymId: string; gymSlug:
 
     startTransition(async () => {
       try {
-        await submitReview(gymId, gymSlug, formData);
-        setSent(true);
+        // submitReview devolve { ok, error? } em vez de lançar erro -- o
+        // Next.js troca a mensagem de um erro lançado numa Server Action
+        // por um texto genérico em produção antes de entregar ao cliente,
+        // então a mensagem real (ex.: "Você já avaliou esta academia.")
+        // nunca chegava aqui. Como valor de retorno normal, ela chega
+        // inteira, e dá pra mostrar o motivo certo em vez de um genérico
+        // "tente novamente" que faz o usuário achar que o site está
+        // quebrado e tentar pra sempre algo que nunca vai dar certo.
+        const result = await submitReview(gymId, gymSlug, formData);
+        if (result.ok) {
+          setSent(true);
+        } else {
+          setError(result.error || 'Não foi possível salvar agora. Tente novamente.');
+        }
       } catch (err) {
-        // submitReview lança mensagens específicas e já em português,
-        // pensadas pra aparecer pro usuário (ex.: "Você já avaliou esta
-        // academia.", "Muitas tentativas..."). Antes isso era descartado e
-        // sempre mostrava um genérico "tente novamente" -- péssimo quando o
-        // motivo real é algo que tentar de novo nunca vai resolver (como já
-        // ter avaliado), fazendo o usuário achar que o site está quebrado.
-        const msg = err instanceof Error ? err.message : '';
-        setError(msg && msg.length < 200 ? msg : 'Não foi possível salvar agora. Tente novamente.');
+        // Chegou aqui só em falha mesmo inesperada (rede caiu, etc.) --
+        // esses casos não têm mensagem segura pra mostrar, daí o genérico.
+        setError('Não foi possível salvar agora. Tente novamente.');
       }
     });
   }

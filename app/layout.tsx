@@ -1,6 +1,8 @@
+import { Suspense } from 'react';
 import type { Metadata, Viewport } from 'next';
 import { Analytics } from '@vercel/analytics/next';
 import { GoogleAnalytics } from '@next/third-parties/google';
+import RouteProgressBar from '@/components/RouteProgressBar';
 import './globals.css';
 
 // Measurement ID da propriedade GA4 dedicada "Academia Score" (separada da
@@ -49,6 +51,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR">
       <body>
+        {/* useSearchParams() exige um limite de Suspense -- sem isso o Next
+            reclama no build. fallback null porque a barra começa escondida
+            de qualquer forma (só aparece depois de um clique em link). */}
+        <Suspense fallback={null}>
+          <RouteProgressBar />
+        </Suspense>
         {children}
         <Analytics />
       </body>

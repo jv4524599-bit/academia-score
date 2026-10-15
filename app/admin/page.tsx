@@ -4,6 +4,7 @@ import { isAdminSession } from '@/lib/session';
 import LoginForm from './LoginForm';
 import { approveReview, rejectReview, deleteReview, logoutAdmin } from './actions';
 import ConfirmSubmitButton from '@/components/ConfirmSubmitButton';
+import PendingSubmitButton from '@/components/PendingSubmitButton';
 import { reviewAvg, fmtDatePtBr } from '@/lib/gym-helpers';
 
 // Depende de cookie de sessão + dados de moderação que mudam a toda hora --
@@ -51,9 +52,9 @@ export default async function AdminPage() {
               ← Voltar ao site
             </Link>
             <form action={logoutAdmin}>
-              <button className="btn-sm" type="submit">
+              <PendingSubmitButton className="btn-sm" pendingText="Saindo...">
                 Sair
-              </button>
+              </PendingSubmitButton>
             </form>
           </div>
         </div>
@@ -81,16 +82,16 @@ export default async function AdminPage() {
                     <div className="admin-review-actions">
                       {rv.status !== 'APPROVED' && (
                         <form action={approveReview.bind(null, rv.id)}>
-                          <button className="btn-sm" type="submit">
+                          <PendingSubmitButton className="btn-sm" pendingText="Aprovando...">
                             ✅ Aprovar
-                          </button>
+                          </PendingSubmitButton>
                         </form>
                       )}
                       {rv.status !== 'REJECTED' && (
                         <form action={rejectReview.bind(null, rv.id)}>
-                          <button className="btn-sm" type="submit">
+                          <PendingSubmitButton className="btn-sm" pendingText="Rejeitando...">
                             🚫 Rejeitar
-                          </button>
+                          </PendingSubmitButton>
                         </form>
                       )}
                       <form action={deleteReview.bind(null, rv.id)}>

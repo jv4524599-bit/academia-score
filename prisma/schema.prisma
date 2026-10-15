@@ -7,7 +7,21 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // DATABASE_URL deve apontar para o CONNECTION POOLER do Supabase
+  // (Settings > Database > Connection string > aba "Transaction", porta
+  // 6543, com ?pgbouncer=true&connection_limit=1), não para a conexão
+  // direta (porta 5432). Rodando em funções serverless na Vercel, cada
+  // invocação pode abrir sua própria conexão Postgres -- no plano
+  // gratuito do Supabase o banco aceita só 60 conexões simultâneas (ver
+  // `select setting from pg_settings where name='max_connections'`), e
+  // mais de um visitante navegando ao mesmo tempo já esgota isso, fazendo
+  // a página falhar com 503 ou parecer travada. O pooler reaproveita
+  // conexões entre as invocações e evita esse esgotamento.
+  // DIRECT_URL fica pra comandos que não passam pelo pooler (`prisma
+  // migrate`/`db push`) -- usa a porta 5432 normal. Só precisa existir
+  // localmente (no seu .env), não na Vercel.
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum Status {

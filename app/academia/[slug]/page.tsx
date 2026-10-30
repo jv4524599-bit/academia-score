@@ -141,6 +141,17 @@ export default async function GymPage({
   const catAverages = categoryAverages(reviewNotasList);
   const hasCatAverages = Object.values(catAverages).some((v) => v != null);
 
+  // "O que os alunos dizem" -- resumo por regras, não por IA: olha só pras
+  // médias reais por categoria (nada de ler/gerar texto). Só aparece com 2+
+  // avaliações pra não tratar o comentário de uma única pessoa como um
+  // "ponto forte" ou "ponto de atenção" definitivo da academia.
+  const catEntries = Object.entries(catAverages).filter(
+    (e): e is [string, number] => e[1] != null
+  );
+  const pontosFortesCat = catEntries.filter(([, v]) => v >= 4.5).sort((a, b) => b[1] - a[1]);
+  const pontosAtencaoCat = catEntries.filter(([, v]) => v <= 3.5).sort((a, b) => a[1] - b[1]);
+  const showStudentsSay = !!rating && rating.count >= 2 && (pontosFortesCat.length > 0 || pontosAtencaoCat.length > 0);
+
   // JSON-LD (dados estruturados) -- só com o que é real: endereço, telefone e,
   // quando existe, a nota média com a contagem verdadeira de avaliações
   // (nunca fabricamos nem arredondamos pra esconder que é baixa).
@@ -283,6 +294,43 @@ export default async function GymPage({
                       </div>
                     ))}
                 </div>
+              </>
+            )}
+
+            {/* O que os alunos dizem -- derivado só das notas reais por categoria */}
+            {showStudentsSay && (
+              <>
+                <h4>O que os alunos dizem</h4>
+                <div className="students-say-grid">
+                  {pontosFortesCat.length > 0 && (
+                    <div className="students-say-col pos">
+                      <h5>Pontos fortes</h5>
+                      <ul className="students-say-list">
+                        {pontosFortesCat.map(([cat, v]) => (
+                          <li key={cat}>
+                            ✅ {cat} <span style={{ color: 'var(--ink-soft)' }}>({v.toFixed(1)})</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {pontosAtencaoCat.length > 0 && (
+                    <div className="students-say-col neg">
+                      <h5>Pontos de atenção</h5>
+                      <ul className="students-say-list">
+                        {pontosAtencaoCat.map(([cat, v]) => (
+                          <li key={cat}>
+                            ⚠️ {cat} <span style={{ color: 'var(--ink-soft)' }}>({v.toFixed(1)})</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+                <p className="note" style={{ marginTop: 10 }}>
+                  Baseado só na média das notas por categoria dadas pelos {rating!.count} alunos que avaliaram —
+                  nenhum texto aqui foi gerado por IA.
+                </p>
               </>
             )}
 

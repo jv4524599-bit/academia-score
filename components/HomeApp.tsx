@@ -66,10 +66,23 @@ export default function HomeApp({
   const validInitialCompare = initialCompare.filter((id) => gyms.some((g) => g.id === id)).slice(0, 3);
   const [selected, setSelected] = useState<string[]>(validInitialCompare);
   const [compareOpen, setCompareOpen] = useState(false);
+  const [quizOpen, setQuizOpen] = useState(false);
 
   useEffect(() => {
     if (validInitialCompare.length >= 2) setCompareOpen(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Fecha qualquer modal aberto com Esc -- nenhum dos modais tinha isso antes,
+  // então quem navega só pelo teclado ficava preso lá dentro.
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== 'Escape') return;
+      setCompareOpen(false);
+      setQuizOpen(false);
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
   const ratings = useMemo(() => {
@@ -168,18 +181,33 @@ export default function HomeApp({
               </option>
             ))}
           </select>
-          <label>
-            <input type="checkbox" checked={wantGympass} onChange={(e) => setWantGympass(e.target.checked)} /> Aceita
-            Gympass
-          </label>
-          <label>
-            <input type="checkbox" checked={wantTotalpass} onChange={(e) => setWantTotalpass(e.target.checked)} />{' '}
+          <button
+            type="button"
+            className={`filter-chip ${wantGympass ? 'active' : ''}`}
+            aria-pressed={wantGympass}
+            onClick={() => setWantGympass((v) => !v)}
+          >
+            Aceita Gympass
+          </button>
+          <button
+            type="button"
+            className={`filter-chip ${wantTotalpass ? 'active' : ''}`}
+            aria-pressed={wantTotalpass}
+            onClick={() => setWantTotalpass((v) => !v)}
+          >
             Aceita TotalPass
-          </label>
-          <label>
-            <input type="checkbox" checked={wantFavorites} onChange={(e) => setWantFavorites(e.target.checked)} /> ❤️
-            Só favoritas
-          </label>
+          </button>
+          <button
+            type="button"
+            className={`filter-chip ${wantFavorites ? 'active' : ''}`}
+            aria-pressed={wantFavorites}
+            onClick={() => setWantFavorites((v) => !v)}
+          >
+            ❤️ Só favoritas
+          </button>
+          <button type="button" className="filter-chip quiz-chip" onClick={() => setQuizOpen(true)}>
+            🎯 Encontre sua academia
+          </button>
           <span className="count-tag" role="status" aria-live="polite">{filtered.length} academia(s)</span>
         </div>
 
@@ -281,7 +309,140 @@ export default function HomeApp({
           </div>
         </div>
       </div>
+
+      {quizOpen && <QuizFinder gyms={gyms} bairros={bairros} ratings={ratings} onClose={() => setQuizOpen(false)} />}
     </>
+  );
+}
+
+// "Encontre sua academia" -- um filtro guiado em 3 perguntas sobre os MESMOS
+// dados reais já carregados na página (sem nenhuma chamada nova ao banco, sem
+// nenhum dado inventado). O resultado é sempre academias de verdade, nunca um
+// exemplo fictício -- se nada bater com as respostas, a tela diz isso
+// claramente em vez de forçar uma recomendação.
+function QuizFinder({
+  gyms,
+  bairros,
+  ratings,
+  onClose,
+}: {
+  gyms: GymSummary[];
+  bairros: string[];
+  ratings: Map<string, { avg: number; count: number } | null>;
+  onClose: () => void;
+}) {
+  const [bairroPref, setBairroPref] = useState('');
+  const [orcamento, setOrcamento] = useState('');
+  const [convenio, setConvenio] = useState<'qualquer' | 'gympass' | 'totalpass'>('qualquer');
+
+  const ORCAMENTO_OPTIONS = [
+    { label: 'Até R$ 100', max: 100 },
+    { label: 'Até R$ 130', max: 130 },
+    { label: 'Até R$ 160', max: 160 },
+    { label: 'Sem limite', max: Infinity },
+  ];
+
+  const resultados = useMemo(() => {
+    const maxPreco = ORCAMENTO_OPTIONS.find((o) => o.label === orcamento)?.max ?? Infinity;
+    return gyms
+      .filter((g) => {
+        if (bairroPref && g.bairro !== bairroPref) return false;
+        if (g.mensalidade != null && g.mensalidade > maxPreco) return false;
+        if (convenio === 'gympass' && g.gympass !== 'SIM') return false;
+        if (convenio === 'totalpass' && g.totalpass !== 'SIM') return false;
+        return true;
+      })
+      .sort((a, b) => {
+        const ra = ratings.get(a.id);
+        const rb = ratings.get(b.id);
+        if (ra && rb) return rb.avg - ra.avg;
+        if (ra && !rb) return -1;
+        if (!ra && rb) return 1;
+        return a.name.localeCompare(b.name);
+      })
+      .slice(0, 5);
+  }, [gyms, bairroPref, orcamento, convenio, ratings]);
+
+  const answered = bairroPref !== '' || orcamento !== '' || convenio !== 'qualquer';
+
+  return (
+    <div className="overlay show" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal" style={{ maxWidth: 560 }}>
+        <div className="modal-head">
+          <h2>🎯 Encontre sua academia</h2>
+          <button className="modal-close" onClick={onClose} aria-label="Fechar">
+            &times;
+          </button>
+        </div>
+        <div className="modal-body">
+          <p className="note" style={{ marginTop: 0, fontStyle: 'normal' }}>
+            Responda o que fizer sentido pra você — o resultado é sempre academia de verdade já cadastrada, com os
+            dados reais dela.
+          </p>
+          <div className="form-grid">
+            <label htmlFor="quiz-bairro">Bairro preferido</label>
+            <select id="quiz-bairro" value={bairroPref} onChange={(e) => setBairroPref(e.target.value)}>
+              <option value="">Tanto faz</option>
+              {bairros.map((b) => (
+                <option key={b} value={b}>
+                  {b}
+                </option>
+              ))}
+            </select>
+
+            <label htmlFor="quiz-orcamento">Orçamento mensal</label>
+            <select id="quiz-orcamento" value={orcamento} onChange={(e) => setOrcamento(e.target.value)}>
+              <option value="">Tanto faz</option>
+              {ORCAMENTO_OPTIONS.map((o) => (
+                <option key={o.label} value={o.label}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+
+            <label htmlFor="quiz-convenio">Precisa de convênio</label>
+            <select id="quiz-convenio" value={convenio} onChange={(e) => setConvenio(e.target.value as typeof convenio)}>
+              <option value="qualquer">Tanto faz</option>
+              <option value="gympass">Precisa aceitar Gympass</option>
+              <option value="totalpass">Precisa aceitar TotalPass</option>
+            </select>
+          </div>
+
+          {answered && (
+            <div style={{ marginTop: 18 }}>
+              <h4 style={{ marginTop: 0 }}>
+                {resultados.length > 0 ? `${resultados.length} academia(s) combinam` : 'Nenhuma academia combina com isso'}
+              </h4>
+              {resultados.length === 0 && (
+                <p className="note" style={{ marginTop: 0 }}>
+                  Tenta afrouxar algum filtro — por exemplo, aumentar o orçamento ou deixar o bairro em &quot;tanto
+                  faz&quot;.
+                </p>
+              )}
+              <div className="similar-gyms-list">
+                {resultados.map((g) => {
+                  const r = ratings.get(g.id);
+                  return (
+                    <div className="similar-gym-row" key={g.id}>
+                      <div>
+                        <strong>{g.name}</strong>
+                        <div className="similar-gym-meta">
+                          {g.bairro} · {r ? `★ ${r.avg.toFixed(1)}${!isTrustedRating(r.count) ? ' (nota em formação)' : ''}` : 'Ainda não avaliada'}{' '}
+                          · {g.mensalidade != null ? `${fmtMoney(g.mensalidade)}/mês` : 'Preço não informado'}
+                        </div>
+                      </div>
+                      <Link href={`/academia/${g.slug}`} className="btn-sm" style={{ textDecoration: 'none' }} onClick={onClose}>
+                        Ver perfil
+                      </Link>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 

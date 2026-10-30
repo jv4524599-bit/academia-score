@@ -1,18 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 
 // Porta openHowItWorks() do protótipo -- conteúdo estático, sem dependência
 // de dados do servidor, então fica autocontido num Client Component.
 export default function HowItWorksButton() {
   const [open, setOpen] = useState(false);
-
-  function goToPartnerForm() {
-    setOpen(false);
-    const footer = document.querySelector('.partner-footer');
-    if (footer) footer.scrollIntoView({ behavior: 'smooth' });
-    setTimeout(() => document.getElementById('pfAcademia')?.focus(), 500);
-  }
 
   return (
     <>
@@ -64,12 +58,12 @@ export default function HowItWorksButton() {
               <h4>🤝 Como uma academia pode se tornar parceira</h4>
               <p>
                 Academias parceiras ganham selo de destaque, galeria de fotos ampliada, vídeo institucional, redes
-                sociais em destaque, agendamento de aula experimental e muito mais. Preencha o formulário de
-                parceria no rodapé do site, ou veja um exemplo completo no perfil de demonstração.
+                sociais em destaque, agendamento de aula experimental e muito mais — e isso nunca altera a nota nem a
+                posição no ranking, que continua 100% baseada nas avaliações da comunidade.
               </p>
-              <button className="btn-sm" onClick={goToPartnerForm}>
-                Ver formulário de parceria
-              </button>
+              <Link href="/para-academias" className="btn-sm" style={{ textDecoration: 'none', display: 'inline-block' }} onClick={() => setOpen(false)}>
+                Ver perfil de demonstração
+              </Link>
             </div>
           </div>
         </div>

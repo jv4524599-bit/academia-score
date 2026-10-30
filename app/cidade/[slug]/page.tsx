@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { db } from '@/lib/db';
-import { avgRatingFromNotas } from '@/lib/gym-helpers';
+import { avgRatingFromNotas, isTrustedRating } from '@/lib/gym-helpers';
 
 // Porta openCityPage() do protótipo -- agora como rota de verdade
 // (/cidade/[slug]) em vez de modal, pra ficar indexável no Google.
@@ -94,7 +94,8 @@ export default async function CityPage({ params }: { params: { slug: string } })
                     {i + 1}. {g.name}
                   </strong>
                   <div className="similar-gym-meta">
-                    {g.bairro} · {r ? `★ ${r.avg.toFixed(1)}` : 'Ainda não avaliada'}
+                    {g.bairro} · {r ? `★ ${r.avg.toFixed(1)} (${r.count})` : 'Ainda não avaliada'}
+                    {r && !isTrustedRating(r.count) && <span className="trust-chip" style={{ marginLeft: 6 }}>Nota em formação</span>}
                   </div>
                 </div>
                 <Link href={`/academia/${g.slug}`} className="btn-sm" style={{ textDecoration: 'none' }}>

@@ -13,9 +13,11 @@ import { Badge } from '@/components/Badge';
 import {
   ALUNO_LABEL,
   avgRatingFromNotas,
+  categoryAverages,
   fmtMoney,
   haversineKm,
   idealParaBadges,
+  isTrustedRating,
   reviewAvg,
   score10,
   type StatusStr,
@@ -136,9 +138,47 @@ export default async function GymPage({
 
   const hasBeneficios = gym.gympass !== 'A_CONFIRMAR' || gym.totalpass !== 'A_CONFIRMAR';
   const idealBadges = idealParaBadges(gym.slug);
+  const catAverages = categoryAverages(reviewNotasList);
+  const hasCatAverages = Object.values(catAverages).some((v) => v != null);
+
+  // JSON-LD (dados estruturados) -- só com o que é real: endereço, telefone e,
+  // quando existe, a nota média com a contagem verdadeira de avaliações
+  // (nunca fabricamos nem arredondamos pra esconder que é baixa).
+  const jsonLd: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'ExerciseGym',
+    name: gym.name,
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: gym.address,
+      addressLocality: 'Valparaíso de Goiás',
+      addressRegion: 'GO',
+      addressCountry: 'BR',
+    },
+    url: `${SITE_URL}/academia/${gym.slug}`,
+  };
+  if (gym.phone) jsonLd.telephone = gym.phone;
+  if (gym.logoUrl) jsonLd.image = gym.logoUrl;
+  if (gym.lat != null && gym.lng != null) {
+    jsonLd.geo = { '@type': 'GeoCoordinates', latitude: gym.lat, longitude: gym.lng };
+  }
+  if (rating) {
+    jsonLd.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: rating.avg.toFixed(2),
+      reviewCount: rating.count,
+      bestRating: 5,
+      worstRating: 1,
+    };
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--paper)', padding: '24px 16px 60px' }}>
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div>
         <div className="modal" style={{ maxWidth: 640, margin: '0 auto', maxHeight: 'none', animation: 'none' }}>
           {/* 1. Nome */}
@@ -169,7 +209,14 @@ export default async function GymPage({
                     {'⭐'.repeat(filled)}
                     {'☆'.repeat(5 - filled)}
                   </div>
-                  <div className="rating-count">({rating.count} avaliação{rating.count === 1 ? '' : 's'})</div>
+                  <div className="rating-count">
+                    ({rating.count} avaliação{rating.count === 1 ? '' : 's'})
+                    {!isTrustedRating(rating.count) && (
+                      <span className="trust-chip" style={{ marginLeft: 8 }} title="Essa academia ainda não atingiu o mínimo de avaliações para entrar no ranking principal. A nota pode mudar com as próximas avaliações.">
+                        Nota em formação
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             ) : (
@@ -209,6 +256,35 @@ export default async function GymPage({
               )}
               <GymFavoriteButton gymId={gym.id} gymSlug={gym.slug} initialFavorite={isFavorite} />
             </div>
+
+            {/* Notas por categoria */}
+            {hasCatAverages && (
+              <>
+                <h4 style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  Notas por categoria
+                  <span
+                    className="cat-info-dot"
+                    title="Cada categoria é a média das notas (1 a 5) dadas por alunos reais nas avaliações desta academia. Quanto mais avaliações, mais estável a média."
+                    aria-label="Como calculamos essas notas"
+                  >
+                    ?
+                  </span>
+                </h4>
+                <div className="cat-bars">
+                  {Object.entries(catAverages)
+                    .filter(([, v]) => v != null)
+                    .map(([cat, v]) => (
+                      <div className="cat-bar-row" key={cat}>
+                        <span className="cat-bar-label">{cat}</span>
+                        <div className="cat-bar-track">
+                          <div className="cat-bar-fill" style={{ width: `${((v as number) / 5) * 100}%` }} />
+                        </div>
+                        <span className="cat-bar-value">{(v as number).toFixed(1)}</span>
+                      </div>
+                    ))}
+                </div>
+              </>
+            )}
 
             {/* 5. Preço (só se existir) */}
             {gym.mensalidade != null && (

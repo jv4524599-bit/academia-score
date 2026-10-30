@@ -21,6 +21,17 @@ export type ReviewCategory = (typeof REVIEW_CATEGORIES)[number];
 
 export type StatusStr = 'SIM' | 'NAO' | 'A_CONFIRMAR';
 
+// Número mínimo de avaliações para uma academia entrar no ranking principal
+// (Top 3 / ordenação por nota) com nota tratada como "confiável". Abaixo
+// disso a nota continua visível (nunca escondemos), mas marcada como
+// "Nota em formação" -- evita tratar 1 avaliação isolada como prova de que
+// uma academia é melhor que outra com dezenas de avaliações reais.
+export const MIN_TRUSTED_REVIEWS = 3;
+
+export function isTrustedRating(count: number | null | undefined): boolean {
+  return (count ?? 0) >= MIN_TRUSTED_REVIEWS;
+}
+
 // Média das notas (por categoria) de UMA avaliação.
 export function reviewAvg(notas: Record<string, number> | null | undefined): number {
   if (!notas) return 0;
@@ -67,7 +78,7 @@ export function badgeText(label: string, status: StatusStr, nivel?: string | nul
 export function normalizeText(s: string | null | undefined): string {
   return (s || '')
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[̀-ͯ]/g, '')
     .toLowerCase();
 }
 

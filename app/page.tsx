@@ -2,16 +2,23 @@ import Link from 'next/link';
 import { db } from '@/lib/db';
 import { getSessionId } from '@/lib/session';
 import HomeApp, { type GymSummary } from '@/components/HomeApp';
-import PremiumDemo from '@/components/PremiumDemo';
 import MovaltBanner from '@/components/MovaltBanner';
 import HowItWorksButton from '@/components/HowItWorksButton';
 import PartnerCtaButton from '@/components/PartnerCtaButton';
-import PartnerForm from '@/components/PartnerForm';
-import { avgRatingFromNotas, CURRENT_CITY_SLUG, fmtDatePtBr, reviewAvg, score10 } from '@/lib/gym-helpers';
+import {
+  avgRatingFromNotas,
+  CURRENT_CITY_SLUG,
+  fmtDatePtBr,
+  isTrustedRating,
+  reviewAvg,
+  score10,
+} from '@/lib/gym-helpers';
 
 // Roda no servidor: busca os dados direto do banco a cada visita.
 // Isso é o que resolve o problema de SEO -- o Google já recebe o HTML pronto.
 export const revalidate = 60; // regenera a página a cada 60s (ISR)
+
+const SITE_URL = 'https://academia-score.vercel.app';
 
 type RecentReview = {
   autor: string;
@@ -94,11 +101,21 @@ export default async function HomePage({
 
   const { city, summaries, ranked, bairros, recentReviews, totalApprovedReviews } = data;
 
-  // Só vira "ranking" de verdade quando há pelo menos 3 academias com
-  // avaliação real -- nunca medalha quem ainda não foi avaliado por ninguém.
-  const rankedWithRating = ranked.filter((g) => avgRatingFromNotas(g.reviewNotas));
-  const showTop3 = rankedWithRating.length >= 3;
-  const top3 = rankedWithRating.slice(0, 3);
+  // Ranking principal: só entram academias com avaliações suficientes pra
+  // uma nota "confiável" (ver MIN_TRUSTED_REVIEWS em lib/gym-helpers) --
+  // nunca tratamos 1 avaliação isolada como prova de que uma academia é
+  // melhor que outra com dezenas de avaliações reais. As academias com
+  // avaliação real mas ainda abaixo desse mínimo não ficam escondidas: vão
+  // para a vitrine "Notas em formação" logo abaixo, com essa nota "em
+  // formação" explícita.
+  const ratedGyms = ranked
+    .map((g) => ({ g, r: avgRatingFromNotas(g.reviewNotas) }))
+    .filter((x): x is { g: GymSummary; r: { avg: number; count: number } } => x.r !== null);
+  const trustedRanked = ratedGyms.filter((x) => isTrustedRating(x.r.count));
+  const emFormacao = ratedGyms.filter((x) => !isTrustedRating(x.r.count));
+
+  const showTop3 = trustedRanked.length >= 3;
+  const top3 = trustedRanked.slice(0, 3);
   const medals = [
     { cls: 'gold', icon: '🥇' },
     { cls: 'silver', icon: '🥈' },
@@ -128,10 +145,30 @@ export default async function HomePage({
   };
   const authErrorMessage = searchParams.authError ? AUTH_ERROR_MESSAGES[searchParams.authError] : null;
 
+  // JSON-LD: só descreve o que já está na página (nome, URL, nota média e
+  // contagem de avaliações de quem já tem avaliação real) -- nada inventado.
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Academia Score',
+    url: SITE_URL,
+    description: 'Compare academias por avaliações reais, preço, estrutura, Wellhub (Gympass) e TotalPass.',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${SITE_URL}/?busca={search_term_string}`,
+      'query-input': 'required name=search_term_string',
+    },
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <header>
-        <nav className="main-nav">
+        <nav className="main-nav" aria-label="Principal">
           <Link href={`/cidade/${city.slug}`}>🏙️ {city.nome}</Link>
           <HowItWorksButton />
           <a
@@ -148,6 +185,7 @@ export default async function HomePage({
         </nav>
         {authErrorMessage && (
           <div
+            role="alert"
             style={{
               maxWidth: 900,
               margin: '0 auto',
@@ -166,10 +204,10 @@ export default async function HomePage({
               {city.nome.toUpperCase()} · {city.uf}
             </div>
             <h1>Academia Score</h1>
-            <p className="tagline">Encontre a academia ideal antes de fazer sua matrícula.</p>
+            <p className="tagline">Descubra qual academia realmente combina com você.</p>
             <p className="sub">
               Compare preços, avaliações reais, estrutura, Wellhub (Gympass), TotalPass e escolha com mais
-              confiança.
+              confiança — sem posição paga no ranking.
             </p>
             <div className="hero-stats-row">
               <div className="hero-stat-card">
@@ -180,17 +218,12 @@ export default async function HomePage({
               <div className="hero-stat-card">
                 <span className="hero-stat-icon">⭐</span>
                 <span className="hero-stat-num">{totalApprovedReviews}</span>
-                <span className="hero-stat-label">avaliações</span>
+                <span className="hero-stat-label">avaliações reais</span>
               </div>
               <div className="hero-stat-card">
-                <span className="hero-stat-icon">👥</span>
-                <span className="hero-stat-num">—</span>
-                <span className="hero-stat-label">usuários este mês</span>
-              </div>
-              <div className="hero-stat-card">
-                <span className="hero-stat-icon">🔄</span>
-                <span className="hero-stat-num">—</span>
-                <span className="hero-stat-label">Atualizado diariamente</span>
+                <span className="hero-stat-icon">🏙️</span>
+                <span className="hero-stat-num">{bairros.length}</span>
+                <span className="hero-stat-label">bairros cobertos</span>
               </div>
             </div>
           </div>
@@ -202,7 +235,6 @@ export default async function HomePage({
             >
               + Sugerir academia
             </a>
-            <PartnerCtaButton className="btn-add partner-cta-hero">🏆 Cadastre sua Academia</PartnerCtaButton>
           </div>
         </div>
       </header>
@@ -213,36 +245,66 @@ export default async function HomePage({
         initialCompare={initialCompare}
         top3={
           showTop3 ? (
-            <div className="section-block">
-              <h3 className="top3-title">🏆 Top 3 Academias da Cidade</h3>
+            <div className="section-block" id="ranking">
+              <h3 className="top3-title">🏆 Ranking principal</h3>
+              <p className="note" style={{ marginTop: -8, marginBottom: 14 }}>
+                Só entram aqui academias com pelo menos 3 avaliações reais — nota confiável, sem posição paga.
+              </p>
               <div className="top3-grid">
-                {top3.map((g, i) => {
-                  const r = avgRatingFromNotas(g.reviewNotas);
-                  return (
-                    <Link
-                      href={`/academia/${g.slug}`}
-                      key={g.id}
-                      className={`top3-card ${medals[i].cls}`}
-                      title={`Ver perfil de ${g.name}`}
-                      style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
-                    >
-                      <span className="top3-medal">{medals[i].icon}</span>
-                      <h4>{g.name}</h4>
-                      <span className="top3-score">{r ? `★ ${r.avg.toFixed(1)} · ${score10(r.avg)}/10` : ''}</span>
-                    </Link>
-                  );
-                })}
+                {top3.map(({ g, r }, i) => (
+                  <Link
+                    href={`/academia/${g.slug}`}
+                    key={g.id}
+                    className={`top3-card ${medals[i].cls}`}
+                    title={`Ver perfil de ${g.name}`}
+                    style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+                  >
+                    <span className="top3-medal">{medals[i].icon}</span>
+                    <h4>{g.name}</h4>
+                    <span className="top3-score">★ {r.avg.toFixed(2)} · {score10(r.avg)}/10</span>
+                    <span className="top3-count">{r.count} avaliações</span>
+                  </Link>
+                ))}
               </div>
             </div>
           ) : (
-            <div className="section-block">
+            <div className="section-block" id="ranking">
               <h3 className="top3-title">Academias da cidade</h3>
               <p className="note" style={{ marginTop: -4 }}>
-                O ranking por nota aparece aqui assim que pelo menos 3 academias tiverem avaliações reais. Enquanto
-                isso, veja todas as academias cadastradas na lista abaixo.
+                O ranking principal aparece aqui assim que pelo menos 3 academias tiverem 3 ou mais avaliações reais
+                cada. Enquanto isso, veja todas as academias cadastradas na lista abaixo.
               </p>
             </div>
           )
+        }
+        emFormacao={
+          emFormacao.length > 0 ? (
+            <div className="section-block">
+              <h3 className="top3-title" style={{ fontSize: 15 }}>
+                📊 Notas em formação
+              </h3>
+              <p className="note" style={{ marginTop: -8, marginBottom: 14 }}>
+                Já têm avaliações reais, mas ainda não chegaram a 3 — a nota pode mudar bastante com as próximas
+                avaliações.
+              </p>
+              <div className="forming-grid">
+                {emFormacao.map(({ g, r }) => (
+                  <Link
+                    href={`/academia/${g.slug}`}
+                    key={g.id}
+                    className="forming-card"
+                    style={{ textDecoration: 'none', color: 'inherit' }}
+                  >
+                    <strong>{g.name}</strong>
+                    <span className="forming-meta">
+                      ★ {r.avg.toFixed(1)} · {r.count} avaliação{r.count === 1 ? '' : 's'}
+                    </span>
+                    <span className="trust-chip">Nota em formação</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : null
         }
         trust={
           <div className="trust-section section-block">
@@ -264,21 +326,15 @@ export default async function HomePage({
                 <span className="trust-icon">🚫</span>Sem venda de posições
               </li>
             </ul>
-            <PartnerCtaButton
-              className="premium-cta-big"
-              style={{ maxWidth: 320, marginTop: 16 }}
-              title="Cadastre sua academia como parceira"
-            >
-              🏆 Cadastre sua Academia
-            </PartnerCtaButton>
-            <p className="note" style={{ marginTop: 10 }}>
-              O pagamento de uma parceria não altera a posição da academia no ranking — a ordem é 100% baseada nas
-              notas recebidas.
+            <p className="note" style={{ marginTop: 10, marginBottom: 0 }}>
+              Academias parceiras não recebem vantagem na nota. {' '}
+              <Link href="/para-academias" style={{ color: 'var(--neon)' }}>
+                Veja como funciona para academias →
+              </Link>
             </p>
           </div>
         }
         promo={<MovaltBanner />}
-        premium={<PremiumDemo />}
         recent={
           <div className="recent-reviews section-block">
             <h3>Últimas avaliações</h3>
@@ -306,37 +362,56 @@ export default async function HomePage({
         }
       />
 
-      <footer className="partner-footer">
-        <div className="partner-inner">
-          <div className="partner-text">
+      <section className="cta-band">
+        <div className="cta-band-inner">
+          <div>
             <h3>É dono(a) de uma academia em {city.nome}?</h3>
             <p>
-              Academias parceiras ganham perfil com galeria de fotos e vídeos ampliada, tabela de planos, tour 360° e
-              botão direto de WhatsApp — para ajudar quem está pesquisando a te conhecer melhor. Fale com a gente
-              para saber mais.
+              Mostre sua estrutura, planos e diferenciais para quem está pesquisando — sem nunca alterar sua posição
+              no ranking.
             </p>
-            <p className="note" style={{ marginTop: -4, marginBottom: 12 }}>
-              O pagamento de uma parceria não altera a posição da academia no ranking.
+          </div>
+          <PartnerCtaButton className="btn-add partner-cta-hero">🏆 Cadastre sua Academia</PartnerCtaButton>
+        </div>
+      </section>
+
+      <footer className="site-footer">
+        <div className="site-footer-grid">
+          <div className="site-footer-col">
+            <div className="site-footer-brand">Academia Score</div>
+            <p>
+              Comparação de academias baseada só em dados reais: avaliações da comunidade, estrutura, preço e
+              convênios. Sem posição paga no ranking.
             </p>
-            <PartnerCtaButton className="btn-add partner-cta-hero">🏆 Cadastre sua Academia</PartnerCtaButton>{' '}
-            <a
-              className="btn-add"
-              style={{ display: 'inline-block', textDecoration: 'none', marginTop: 10, marginLeft: 8 }}
-              href="mailto:parcerias@academiascore.com.br?subject=Quero%20ser%20parceira"
-            >
-              Enviar e-mail para parceria
-            </a>
             <a
               href="https://www.instagram.com/academiascore?igsh=aWUwYTRwbGdvM2s2"
               target="_blank"
               rel="noopener"
               className="footer-instagram"
             >
-              <span className="social-icon-circle ig">IG</span>Siga o Academia Score no Instagram
+              <span className="social-icon-circle ig">IG</span>@academiascore
             </a>
           </div>
-          <PartnerForm />
+          <div className="site-footer-col">
+            <h4>Explorar</h4>
+            <Link href="/#ranking">Ranking principal</Link>
+            <Link href={`/cidade/${city.slug}`}>{city.nome}</Link>
+            <a href="mailto:contato@academiascore.com.br?subject=Sugest%C3%A3o%20de%20academia">
+              Sugerir academia
+            </a>
+          </div>
+          <div className="site-footer-col">
+            <h4>Confiança</h4>
+            <span className="site-footer-note">Como calculamos as notas, verificação de avaliações e moderação.</span>
+            <a href="mailto:contato@academiascore.com.br?subject=Denunciar%20problema">Denunciar um problema</a>
+          </div>
+          <div className="site-footer-col">
+            <h4>Para academias</h4>
+            <span className="site-footer-note">Academias parceiras não recebem vantagem na nota.</span>
+            <Link href="/para-academias">Anuncie sua academia →</Link>
+          </div>
         </div>
+        <div className="site-footer-bottom">© {new Date().getFullYear()} Academia Score</div>
       </footer>
     </>
   );

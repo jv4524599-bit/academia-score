@@ -10,6 +10,7 @@ import {
   avgRatingFromNotas,
   categoryAverages,
   fmtMoney,
+  isTrustedRating,
   normalizeText,
   score10,
   type StatusStr,
@@ -40,18 +41,18 @@ export default function HomeApp({
   bairros,
   initialCompare,
   top3,
+  emFormacao,
   trust,
   promo,
-  premium,
   recent,
 }: {
   gyms: GymSummary[];
   bairros: string[];
   initialCompare: string[];
   top3: React.ReactNode;
+  emFormacao?: React.ReactNode;
   trust: React.ReactNode;
   promo?: React.ReactNode;
-  premium: React.ReactNode;
   recent: React.ReactNode;
 }) {
   const [search, setSearch] = useState('');
@@ -133,12 +134,16 @@ export default function HomeApp({
 
   return (
     <>
-      <section className="hero-search">
+      <section className="hero-search" role="search" aria-label="Buscar academia">
         <div className="hero-search-inner">
           <h2>Encontre sua academia</h2>
           <div className="hero-search-box">
-            <span className="search-icon">🔍</span>
+            <span className="search-icon" aria-hidden="true">🔍</span>
+            <label htmlFor="busca-academia" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)' }}>
+              Buscar por nome da academia ou bairro
+            </label>
             <input
+              id="busca-academia"
               type="text"
               placeholder="Digite o nome da academia ou bairro..."
               value={search}
@@ -150,11 +155,12 @@ export default function HomeApp({
 
       <main>
         {top3}
+        {emFormacao}
         {trust}
         {promo}
 
         <div className="filters section-block">
-          <select value={bairro} onChange={(e) => setBairro(e.target.value)}>
+          <select value={bairro} onChange={(e) => setBairro(e.target.value)} aria-label="Filtrar por bairro">
             <option value="">Todos os bairros</option>
             {bairros.map((b) => (
               <option key={b} value={b}>
@@ -174,12 +180,10 @@ export default function HomeApp({
             <input type="checkbox" checked={wantFavorites} onChange={(e) => setWantFavorites(e.target.checked)} /> ❤️
             Só favoritas
           </label>
-          <span className="count-tag">{filtered.length} academia(s)</span>
+          <span className="count-tag" role="status" aria-live="polite">{filtered.length} academia(s)</span>
         </div>
 
-        {premium}
-
-        <div>
+        <div id="grade">
         {filtered.length === 0 ? (
           <div className="empty-state">
             Nenhuma academia encontrada com esses filtros.
@@ -220,6 +224,7 @@ export default function HomeApp({
                         ★ {r.avg.toFixed(1)} <span className="count">({r.count})</span>
                         <br />
                         <span className="score10">{score10(r.avg)}/10</span>
+                        {!isTrustedRating(r.count) && <span className="trust-chip">Nota em formação</span>}
                       </>
                     ) : (
                       <span className="count">Ainda não avaliada</span>
@@ -316,7 +321,13 @@ function CompareTable({
       label: 'Nota geral',
       get: (g) => {
         const r = ratings.get(g.id);
-        return r ? `★ ${r.avg.toFixed(1)} (${r.count} aval.)` : 'Ainda não avaliada';
+        if (!r) return 'Ainda não avaliada';
+        return (
+          <>
+            ★ {r.avg.toFixed(1)} ({r.count} aval.)
+            {!isTrustedRating(r.count) && <span className="trust-chip" style={{ display: 'block', marginTop: 4 }}>Nota em formação</span>}
+          </>
+        );
       },
       numeric: (g) => ratings.get(g.id)?.avg ?? null,
     },

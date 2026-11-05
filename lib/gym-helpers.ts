@@ -2,9 +2,24 @@
 // importadas tanto em Server Components quanto em Client Components,
 // pois não usam nenhuma API de navegador.
 
-// Única cidade ativa por enquanto (mesma ideia do CURRENT_CITY do protótipo,
-// preparado pra expansão: cada cidade nova só precisa de uma linha na tabela City).
+// Cidade original (mesma ideia do CURRENT_CITY do protótipo). Mantido por
+// compatibilidade com quem já importa esse nome -- é a cidade da home em "/".
 export const CURRENT_CITY_SLUG = 'valparaiso-go';
+
+// Segunda cidade com home própria. Pra adicionar uma cidade nova no futuro:
+// 1) cadastrar em prisma/seed.ts (objeto CITIES) e rodar o seed;
+// 2) adicionar um slug aqui (ou direto em CITY_HOMES);
+// 3) criar app/<rota>/page.tsx chamando renderCityHome() com esse slug
+//    (ver app/cidade-ocidental/page.tsx como exemplo).
+export const CIDADE_OCIDENTAL_SLUG = 'cidade-ocidental-go';
+
+// Cidades que têm uma "home" própria (mesmo layout da home principal, só
+// trocando os dados da cidade). basePath é o prefixo de rota usado nos
+// links internos dessa home (vazio pra "/", "/cidade-ocidental" pra ela).
+export const CITY_HOMES = [
+  { citySlug: CURRENT_CITY_SLUG, basePath: '' },
+  { citySlug: CIDADE_OCIDENTAL_SLUG, basePath: '/cidade-ocidental' },
+] as const;
 
 export const REVIEW_CATEGORIES = [
   'Equipamentos',

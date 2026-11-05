@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { db } from '@/lib/db';
+import { CITY_HOMES } from '@/lib/gym-helpers';
 
 const SITE_URL = 'https://academia-score.vercel.app';
 
@@ -11,8 +12,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     db.gym.findMany({ select: { slug: true, updatedAt: true } }),
   ]);
 
+  // "/" + uma entrada por cidade com home própria (ver CITY_HOMES) --
+  // basePath '' é a própria "/", já incluída abaixo, então não duplica.
   const staticEntries: MetadataRoute.Sitemap = [
     { url: SITE_URL, changeFrequency: 'daily', priority: 1 },
+    ...CITY_HOMES.filter((h) => h.basePath).map((h) => ({
+      url: `${SITE_URL}${h.basePath}`,
+      changeFrequency: 'daily' as const,
+      priority: 1,
+    })),
   ];
 
   const cityEntries: MetadataRoute.Sitemap = cities.map((c: { slug: string }) => ({

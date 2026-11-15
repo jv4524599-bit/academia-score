@@ -714,21 +714,26 @@
     "totalpassNivel": "TP1+",
     "horarios": "Segunda a sexta: 05h às 23h\nSábado: 08h às 17h\nDomingo: 08h às 14h\nFeriados: 08h às 17h",
     "site": "https://www.smartfit.com.br/academias/cidade-ocidental",
-    "source_note": "Dados confirmados via site oficial da Smart Fit e TotalPass. Gympass marcado como \"não\" por padrão nacional da rede (mesmo padrão da unidade de Valparaíso de Goiás) — confirmar antes de publicar."
+    "source_note": "Dados confirmados via site oficial da Smart Fit e TotalPass. Gympass marcado como \"não\" por padrão nacional da rede (mesmo padrão da unidade de Valparaíso de Goiás) — confirmar antes de publicar. | Coordenadas confirmadas via Google Maps (Academia Smart Fit - Cidade Ocidental, 4,8 estrelas/88 avaliacoes). TotalPass confirmado via totalpass.com (nivel minimo TP1+, outros niveis TP2-TP7 tambem dao acesso). Gympass/Wellhub: nao encontrado nas buscas (rede Smart Fit historicamente nao participa do Wellhub) -- mantido 'a_confirmar' por nao ser 100% certo para esta unidade especifica.",
+    "lat": -16.1015976,
+    "lng": -47.9492712
   },
   {
     "id": "corpo-saude-cidade-ocidental",
     "cidade": "cidade-ocidental",
     "slug": "corpo-e-saude-cidade-ocidental",
     "name": "Corpo e Saúde — Cidade Ocidental",
-    "bairro": "Centro",
-    "address": "QSQ 06, Quadra 02, S/N, Edifício Shopping Ocidental, Centro, Cidade Ocidental - GO",
+    "bairro": "Mansões Suleste",
+    "address": "Av. Perimetral Norte, Mansões Suleste, Cidade Ocidental - GO, 72880-000",
     "phone": "(61) 99866-8943",
-    "gympass": "a_confirmar",
+    "gympass": "sim",
     "totalpass": "a_confirmar",
     "horarios": "Segunda a sexta: 05h às 23h\nSábado: 08h às 16h\nDomingo: 09h às 14h",
     "site": "https://academiacorpoesaude.com.br",
-    "source_note": "Endereço, telefone e horário confirmados via site oficial da rede Corpo e Saúde. Gympass/TotalPass ainda não confirmados — ligar antes de publicar com destaque."
+    "source_note": "Endereço, telefone e horário confirmados via site oficial da rede Corpo e Saúde. Gympass/TotalPass ainda não confirmados — ligar antes de publicar com destaque. | Coordenadas e telefone confirmados via Google Maps (telefone bate exatamente: (61) 99866-8943). Gympass confirmado via Wellhub, nivel Basic (R$69,99; tambem lista Starter R$39,99 e Basic+ R$99,99). ATENCAO: o endereco real conforme Google Maps e Wellhub e 'Av. Perimetral Norte, Mansoes Suleste/Mansoes Sul, 72880-000', NAO 'Centro/Edificio Shopping Ocidental' como estava cadastrado -- o telefone bate exatamente entao e a mesma academia, mas o bairro/endereco no cadastro parece desatualizado ou errado. Recomendado confirmar por telefone antes de corrigir o endereco. | CORRIGIDO (fonte mais confiavel = Google Maps + Wellhub): telefone bate exatamente com o cadastro antigo, confirmando ser a mesma academia; porem bairro/endereco do cadastro antigo (Centro/Edificio Shopping Ocidental) estava desatualizado. Endereco atualizado para o que consta no Google Maps e Wellhub.",
+    "lat": -16.1093566,
+    "lng": -47.9373747,
+    "gympassNivel": "Basic"
   },
   {
     "id": "ultra-academia-cidade-ocidental",
@@ -741,7 +746,10 @@
     "gympassNivel": "Basic",
     "totalpass": "a_confirmar",
     "site": "https://ultraacademia.com.br/index.php",
-    "source_note": "Endereço e Gympass confirmados via Wellhub. Telefone do diretório público parecia inválido/genérico e foi omitido — confirmar telefone, horário e TotalPass antes de publicar com destaque."
+    "source_note": "Endereço e Gympass confirmados via Wellhub. Telefone do diretório público parecia inválido/genérico e foi omitido — confirmar telefone, horário e TotalPass antes de publicar com destaque. | Coordenadas, telefone (nao tinhamos nenhum cadastrado) e avaliacoes (4,5 estrelas / 623 avaliacoes) confirmados via Google Maps -- endereco bate com o cadastro. Gympass confirmado via Wellhub, nivel Basic.",
+    "lat": -16.1110376,
+    "lng": -47.931056,
+    "phone": "(61) 99854-5133"
   },
   {
     "id": "la-fitness-academia-co",
@@ -753,31 +761,7 @@
     "phone": "(61) 99917-1924",
     "gympass": "a_confirmar",
     "totalpass": "a_confirmar",
-    "source_note": "Dados coletados de diretório público (Solutudo). Endereço, Gympass, TotalPass e horário precisam de confirmação antes de publicar com destaque."
-  },
-  {
-    "id": "espaco-monteiro-co",
-    "cidade": "cidade-ocidental",
-    "slug": "espaco-monteiro-cidade-ocidental",
-    "name": "Espaço Monteiro — Condicionamento Físico",
-    "bairro": "Dom Bosco",
-    "address": "Quadra 14, S/N, Dom Bosco, Cidade Ocidental - GO",
-    "phone": "(61) 98402-4593",
-    "gympass": "a_confirmar",
-    "totalpass": "a_confirmar",
-    "source_note": "Dados coletados de diretório público (Solutudo). Endereço, Gympass, TotalPass e horário precisam de confirmação antes de publicar com destaque."
-  },
-  {
-    "id": "dinha-fitness-co",
-    "cidade": "cidade-ocidental",
-    "slug": "academia-dinha-fitness",
-    "name": "Academia Dinha Fitness",
-    "bairro": "Parque Nova Friburgo A",
-    "address": "Quadra 4, 03, Parque Nova Friburgo A, Cidade Ocidental - GO",
-    "phone": "(61) 99283-7978",
-    "gympass": "a_confirmar",
-    "totalpass": "a_confirmar",
-    "source_note": "Dados coletados de diretório público (Solutudo). Endereço, Gympass, TotalPass e horário precisam de confirmação antes de publicar com destaque."
+    "source_note": "Dados coletados de diretório público (Solutudo). Endereço, Gympass, TotalPass e horário precisam de confirmação antes de publicar com destaque. | NAO encontrado como ficha propria no Google Maps (so aparece o nome do bairro). Gympass aparece no Wellhub como parceiro nivel Basic, mas a URL/slug da pagina do Wellhub referencia bairro 'Parque Nova Friburgo B', diferente do bairro cadastrado aqui ('Mansoes Recreio Mossoro') -- nao da pra confirmar com certeza que e a mesma unidade. Recomendado confirmar por telefone (61) 99917-1924 antes de aplicar qualquer dado do Wellhub. | MANTIDO sem alteracao de bairro/endereco: confianca baixa para trocar a fonte -- nao ha ficha propria no Google Maps, e a unica evidencia (slug do Wellhub citando 'Parque Nova Friburgo B') diverge do bairro cadastrado ('Mansões Recreio Mossoró') sem telefone para confirmar que e a mesma unidade. Recomendado confirmar por telefone (61) 99917-1924 antes de qualquer correcao."
   },
   {
     "id": "box-062-evolution-co",
@@ -786,10 +770,12 @@
     "name": "Box 062 Evolution",
     "bairro": "Jardim ABC de Goiás",
     "address": "10ª Rua, Quadra 61, Lote C, 6, Jardim ABC de Goiás, Cidade Ocidental - GO",
-    "phone": "(61) 99512-9788",
+    "phone": "(61) 99828-3137",
     "gympass": "a_confirmar",
     "totalpass": "a_confirmar",
-    "source_note": "Box de CrossFit/treinamento funcional. Dados coletados de diretório público (Solutudo). Endereço, Gympass, TotalPass e horário precisam de confirmação antes de publicar com destaque."
+    "source_note": "Box de CrossFit/treinamento funcional. Dados coletados de diretório público (Solutudo). Endereço, Gympass, TotalPass e horário precisam de confirmação antes de publicar com destaque. | Encontrada no Google Maps como 'Box Evolution 062' (ordem do nome invertida), categoria 'Academia de artes marciais', 5,0 estrelas (1 avaliacao), tem link de Instagram. Endereco bate (Quadra 61, Lote C). ATENCAO: telefone do Maps, (61) 99828-3137, e diferente do cadastrado, (61) 99512-9788 -- pode ser numero desatualizado no nosso cadastro ou numero alternativo; nao alterei o telefone sem confirmar. | CORRIGIDO telefone (fonte mais confiavel = Google Maps, perfil 'Box Evolution 062'): numero antigo cadastrado (61) 99512-9788 substituido por (61) 99828-3137, que aparece no perfil do Google Maps (geralmente mantido pelo proprio negocio e mais atual). Nome, bairro e endereco batiam integralmente, dando confianca alta de ser a mesma unidade.",
+    "lat": -16.052006,
+    "lng": -47.8154446
   },
   {
     "id": "smart-one-co",
@@ -799,33 +785,24 @@
     "bairro": "Parque Nova Friburgo B",
     "address": "Quadra 41, Parque Nova Friburgo B, Cidade Ocidental - GO",
     "phone": "(61) 99119-9324",
-    "gympass": "a_confirmar",
+    "gympass": "sim",
     "totalpass": "a_confirmar",
-    "source_note": "Dados coletados de diretório público (Solutudo). Endereço, Gympass, TotalPass e horário precisam de confirmação antes de publicar com destaque."
-  },
-  {
-    "id": "x-body-academia-co",
-    "cidade": "cidade-ocidental",
-    "slug": "x-body-academia",
-    "name": "X-Body Academia",
-    "bairro": "Super Quadra",
-    "address": "Quadra 03, Lote 01, 1902, Super Quadra, Cidade Ocidental - GO",
-    "phone": "(61) 98607-0058",
-    "gympass": "a_confirmar",
-    "totalpass": "a_confirmar",
-    "source_note": "Dados coletados de diretório público (Solutudo). Endereço, Gympass, TotalPass e horário precisam de confirmação antes de publicar com destaque."
+    "source_note": "Dados coletados de diretório público (Solutudo). Endereço, Gympass, TotalPass e horário precisam de confirmação antes de publicar com destaque. | Gympass confirmado via Wellhub (nivel 'Starter', R$39,99 -- nivel mais novo/baixo que Basic/Plus/Premium), endereco do Wellhub bate com o bairro cadastrado (Parque Nova Friburgo B, Quadra 41/Rua Cinco). NAO encontrada no Google Maps com esse endereco -- existe uma OUTRA 'Academia Smart One' no Maps, mas em bairro totalmente diferente (Estrela Dalva III, QD 116) e telefone diferente ((61) 99898-0743) -- provavelmente uma unidade diferente, nao apliquei esses dados aqui.",
+    "gympassNivel": "Starter"
   },
   {
     "id": "academia-firmefort-co",
     "cidade": "cidade-ocidental",
     "slug": "academia-firmefort",
     "name": "Academia Firmefort",
-    "bairro": "Parque das Américas",
-    "address": "Quadra 65, S/N, Parque das Américas, Cidade Ocidental - GO",
+    "bairro": "Jardim ABC",
+    "address": "Avenida Principal, Jardim ABC, Cidade Ocidental - GO, 72880-000",
     "phone": "(61) 3627-0815",
     "gympass": "a_confirmar",
     "totalpass": "a_confirmar",
-    "source_note": "Dados coletados de diretório público (Solutudo). Endereço, Gympass, TotalPass e horário precisam de confirmação antes de publicar com destaque."
+    "source_note": "Dados coletados de diretório público (Solutudo). Endereço, Gympass, TotalPass e horário precisam de confirmação antes de publicar com destaque. | Coordenadas e telefone confirmados via Google Maps (telefone bate exatamente: (61) 3627-0815; 4,2 estrelas, 18 avaliacoes). ATENCAO: endereco do Maps e 'Avenida Principal - Jardim ABC', bairro diferente do cadastrado ('Parque das Americas') -- telefone bate entao e a mesma academia, mas o bairro pode estar desatualizado/errado no cadastro. | CORRIGIDO (fonte mais confiavel = Google Maps): telefone bate exatamente com o cadastro antigo ((61) 3627-0815), confirmando ser a mesma academia; bairro/endereco atualizado de 'Parque das Américas' (desatualizado) para 'Jardim ABC', conforme Google Maps.",
+    "lat": -16.0516353,
+    "lng": -47.8153755
   },
   {
     "id": "spartans-academia-co",
@@ -835,21 +812,26 @@
     "bairro": "Parque Nova Friburgo B",
     "address": "Quadra 8, S/N, Parque Nova Friburgo B, Cidade Ocidental - GO",
     "phone": "(61) 99969-6850",
-    "gympass": "a_confirmar",
+    "gympass": "sim",
     "totalpass": "a_confirmar",
-    "source_note": "Dados coletados de diretório público (Solutudo). Endereço, Gympass, TotalPass e horário precisam de confirmação antes de publicar com destaque."
+    "source_note": "Dados coletados de diretório público (Solutudo). Endereço, Gympass, TotalPass e horário precisam de confirmação antes de publicar com destaque. | Coordenadas confirmadas via Google Maps (5,0 estrelas, 10 avaliacoes, R. Cinco 1445, Parque Nova Friburgo -- bate com o cadastro). Gympass confirmado via Wellhub como 'Academia Spartan' (singular, nao 'Spartans') nivel Basic -- nome ligeiramente diferente mas endereco/bairro batem, confianca alta de ser a mesma academia.",
+    "lat": -16.1001768,
+    "lng": -47.9435389,
+    "gympassNivel": "Basic"
   },
   {
     "id": "academia-xtreme-co",
     "cidade": "cidade-ocidental",
     "slug": "academia-xtreme-cidade-ocidental",
     "name": "Academia Xtreme",
-    "bairro": "Parque das Américas",
-    "address": "Quadra 61, S/N, Parque das Américas, Cidade Ocidental - GO",
-    "phone": "(61) 98493-2503",
+    "bairro": "Jardim ABC / Jardim das Oliveiras",
+    "address": "Lote V, Jardim ABC / Jardim das Oliveiras, Cidade Ocidental - GO, 72896-520",
+    "phone": "(61) 99215-7296",
     "gympass": "a_confirmar",
     "totalpass": "a_confirmar",
-    "source_note": "Dados coletados de diretório público (Solutudo). Endereço, Gympass, TotalPass e horário precisam de confirmação antes de publicar com destaque."
+    "source_note": "Dados coletados de diretório público (Solutudo). Endereço, Gympass, TotalPass e horário precisam de confirmação antes de publicar com destaque. | Encontrada no Google Maps como 'Xtreme Academia' (ordem invertida), 4,8 estrelas (63 avaliacoes). ATENCAO: endereco do Maps e 'Jardim ABC / Jardim das Oliveiras', bairro diferente do cadastrado ('Parque das Americas'); telefone do Maps, (61) 99215-7296, tambem diferente do cadastrado, (61) 98493-2503 -- nome e regiao batem o suficiente pra ter confianca razoavel que e a mesma, mas recomendado confirmar por telefone antes de corrigir bairro/telefone. | CORRIGIDO bairro/endereco/telefone (fonte mais confiavel = Google Maps, perfil 'Xtreme Academia', 4,8 estrelas/63 avaliacoes): dados antigos (bairro 'Parque das Américas', telefone (61) 98493-2503) substituidos pelos dados do Google Maps, que e autogerenciado pelo negocio e tende a ser mais atual. Nome e regiao batem o suficiente para confianca razoavel de ser a mesma academia.",
+    "lat": -16.0580305,
+    "lng": -47.8179918
   },
   {
     "id": "smart-box-co",
@@ -857,23 +839,13 @@
     "slug": "smart-box-cidade-ocidental",
     "name": "Smart Box",
     "bairro": "Parque Araguari",
-    "address": "Quadra 55, S/N, Parque Araguari, Cidade Ocidental - GO",
-    "phone": "(61) 3605-4531",
+    "address": "Quadra 55, Lote 02, Parque Araguari, Cidade Ocidental - GO, 72885-262",
+    "phone": "(61) 99807-9456",
     "gympass": "a_confirmar",
     "totalpass": "a_confirmar",
-    "source_note": "Box de CrossFit/treinamento funcional. Dados coletados de diretório público (Solutudo). Endereço, Gympass, TotalPass e horário precisam de confirmação antes de publicar com destaque."
-  },
-  {
-    "id": "andrade-e-costa-co",
-    "cidade": "cidade-ocidental",
-    "slug": "andrade-e-costa-academia-de-ginastica",
-    "name": "Andrade e Costa Academia de Ginástica",
-    "bairro": "Centro",
-    "address": "Quadra Sq 13, Quadra 1, Lote 06, Centro, Cidade Ocidental - GO",
-    "phone": "(61) 99666-4440",
-    "gympass": "a_confirmar",
-    "totalpass": "a_confirmar",
-    "source_note": "Dados coletados de diretório público (Solutudo). Endereço, Gympass, TotalPass e horário precisam de confirmação antes de publicar com destaque."
+    "source_note": "Box de CrossFit/treinamento funcional. Dados coletados de diretório público (Solutudo). Endereço, Gympass, TotalPass e horário precisam de confirmação antes de publicar com destaque. | Coordenadas confirmadas via Google Maps (categoria 'Sala de fitness', 4,3 estrelas, 106 avaliacoes, Quadra 55 Lote 02 Parque Araguari -- bate com o cadastro). ATENCAO: telefone do Maps, (61) 99807-9456, e diferente do cadastrado, (61) 3605-4531 -- pode ser landline vs celular ou numero desatualizado; nao alterei sem confirmar. | CORRIGIDO telefone/CEP (fonte mais confiavel = Google Maps): numero antigo (61) 3605-4531 (possivelmente fixo/desatualizado) substituido por (61) 99807-9456, celular ativo conforme perfil do Google Maps (4,3 estrelas/106 avaliacoes). Bairro ja estava correto (Parque Araguari); CEP detalhado conforme Maps.",
+    "lat": -16.1031762,
+    "lng": -47.9492479
   },
   {
     "id": "academia-hardcore-co",
@@ -883,8 +855,39 @@
     "bairro": "Parque Nápolis",
     "address": "Quadra 5, 23, Parque Nápolis, Cidade Ocidental - GO",
     "phone": "(61) 98528-1447",
-    "gympass": "a_confirmar",
+    "gympass": "sim",
     "totalpass": "a_confirmar",
-    "source_note": "Dados coletados de diretório público (Solutudo). Endereço, Gympass, TotalPass e horário precisam de confirmação antes de publicar com destaque."
+    "source_note": "Dados coletados de diretório público (Solutudo). Endereço, Gympass, TotalPass e horário precisam de confirmação antes de publicar com destaque. | Coordenadas e telefone confirmados via Google Maps (telefone (61) 3605-1051 -- diferente do celular cadastrado (61) 98528-1447, pode ser uma segunda linha/fixo; 4,7 estrelas, 75 avaliacoes, aberta ate 22h). Gympass confirmado via Wellhub nivel Basic (musculacao inclusa; Muay Thai exige plano Silver).",
+    "lat": -16.1095777,
+    "lng": -47.9508649,
+    "gympassNivel": "Basic"
+  },
+  {
+    "id": "academia-maromba-ocidental-unidade-1",
+    "cidade": "cidade-ocidental",
+    "slug": "academia-maromba-ocidental-unidade-1",
+    "name": "Academia Maromba Ocidental — Unidade 1",
+    "bairro": "Centro",
+    "address": "Super Quadra 13, Quadras 7 e 8, 20, Cidade Ocidental - GO, 72880-000",
+    "phone": "(61) 99621-1932",
+    "gympass": "sim",
+    "gympassNivel": "Basic",
+    "totalpass": "a_confirmar",
+    "source_note": "Adicionada como sugestao (bonus). Dados confirmados via Wellhub (ficha 'Academia Maromba Ocidental Unidade 1', plano a partir de Basic, R$69,99/mes). Nao foi possivel localizar ficha propria no Google Maps (buscas retornaram resultado indevido de outra academia na mesma regiao) nem coordenadas/avaliacoes/fotos -- recomendado confirmar endereco exato e buscar coordenadas por telefone ou visita antes de publicar com destaque. TotalPass nao encontrado nas buscas -- mantido 'a_confirmar'."
+  },
+  {
+    "id": "chama-do-cerrado",
+    "cidade": "cidade-ocidental",
+    "slug": "chama-do-cerrado",
+    "name": "Chama do Cerrado",
+    "bairro": "Centro",
+    "address": "Super Quadra 12 Quadra 04, Quadra 11 - Loja 39, Centro, Cidade Ocidental - GO, 72880-000",
+    "phone": "(61) 98257-3703",
+    "gympass": "sim",
+    "gympassNivel": "Starter",
+    "totalpass": "a_confirmar",
+    "lat": -16.1079575,
+    "lng": -47.9311944,
+    "source_note": "Adicionada como sugestao (bonus). Dados confirmados via Google Maps (4,5 estrelas/92 avaliacoes, categoria 'Sala de fitness') e Wellhub (plano a partir de Starter, R$39,99/mes; Funcional exige Basic+, Fitness dance/Jiu-jitsu/Jump/Muay Thai exigem Silver+, Personal trainer exige Gold+). Telefone do Google Maps, (61) 3625-2070, diverge do telefone do Wellhub, (61) 98257-3703 -- mantido o do Maps/Wellhub conforme ficha mais recente; recomendado confirmar qual numero esta ativo. TotalPass nao encontrado -- mantido 'a_confirmar'."
   }
 ]

@@ -105,10 +105,10 @@ export default function ReviewForm({ gymId, gymSlug }: { gymId: string; gymSlug:
           padding: '8px 10px',
           border: '1px solid var(--line)',
           borderRadius: 'var(--radius)',
-          fontFamily: "'Manrope',sans-serif",
+          fontFamily: "'Inter',sans-serif",
           fontSize: 14,
           marginBottom: 8,
-          background: '#0E0C09',
+          background: '#fff',
           color: 'var(--ink)',
         }}
       >
